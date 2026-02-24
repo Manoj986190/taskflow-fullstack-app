@@ -1,0 +1,15 @@
+package com.taskflow.taskflow_backend.dto;
+
+import com.taskflow.taskflow_backend.entity.TaskStatus;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+public record TaskResponse(
+        Long id,
+        String title,
+        String description,
+        LocalDate dueDate,
+        TaskStatus status,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
+) {}

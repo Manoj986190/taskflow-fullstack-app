@@ -40,6 +40,28 @@ public class GlobalExceptionHandler {
         return buildResponse(message, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<?> handleUserNotFound(UserNotFoundException ex) {
+        return ResponseEntity.status(404).body(
+                Map.of(
+                        "status", 404,
+                        "message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(TaskNotFoundException.class)
+    public ResponseEntity<?> handleTaskNotFound(TaskNotFoundException ex) {
+        return ResponseEntity.status(404).body(
+                Map.of(
+                        "status", 404,
+                        "message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(TaskAccessDeniedException.class)
+    public ResponseEntity<?> handleAccessDenied(TaskAccessDeniedException ex) {
+        return ResponseEntity.status(403).body(
+                Map.of("status", 403, "message", ex.getMessage()));
+    }
+
     private ResponseEntity<Map<String, Object>> buildResponse(String message, HttpStatus status) {
 
         Map<String, Object> body = new HashMap<>();
