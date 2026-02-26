@@ -1,2 +1,276 @@
-<h2>Dashboard</h2>
-<p>Authentication successful.</p>
+<div class="min-vh-100 bg-light">
+
+  <!-- NAVBAR -->
+  <nav class="navbar bg-white shadow-sm px-4 py-3">
+    <div class="container-fluid d-flex justify-content-between align-items-center">
+
+      <span class="navbar-brand fw-bold fs-4 text-primary">
+        TaskFlow
+      </span>
+
+      <div class="dropdown d-flex align-items-center gap-3">
+
+        <span class="fw-medium text-dark">
+          {{ userName }}
+        </span>
+
+        <div class="avatar dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+          {{ userInitial }}
+        </div>
+
+        <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+          <li>
+            <button class="dropdown-item text-danger" (click)="logout()">
+              Logout
+            </button>
+          </li>
+        </ul>
+
+      </div>
+
+    </div>
+  </nav>
+
+  <div class="container py-5">
+
+    <!-- STATS -->
+    <div class="row mb-4 g-4">
+      <div class="col-md-3">
+        <div class="stat-card bg-primary text-white">
+          <h6>Total Tasks</h6>
+          <h3>{{ totalTasks }}</h3>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-card bg-secondary text-white">
+          <h6>Todo</h6>
+          <h3>{{ todoCount }}</h3>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-card bg-warning text-dark">
+          <h6>In Progress</h6>
+          <h3>{{ inProgressCount }}</h3>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-card bg-success text-white">
+          <h6>Completed</h6>
+          <h3>{{ doneCount }}</h3>
+        </div>
+      </div>
+    </div>
+
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h4 class="fw-semibold mb-0">My Tasks</h4>
+      <button class="btn btn-primary shadow-sm" (click)="openCreateModal()">
+        + Create Task
+      </button>
+    </div>
+
+    <!-- SEARCH & FILTER BAR -->
+    <div class="row mb-4 g-3">
+      <div class="col-md-8">
+        <div class="input-group">
+          <span class="input-group-text bg-white border-end-0">
+            🔎
+          </span>
+          <input type="text" class="form-control border-start-0 ps-0" placeholder="Search tasks..."
+            [(ngModel)]="searchQuery" (ngModelChange)="onSearchChange()" />
+        </div>
+      </div>
+      <div class="col-md-4">
+        <select class="form-select" [(ngModel)]="selectedStatus" (ngModelChange)="onStatusChange()">
+          <option value="">All Status</option>
+          <option value="TODO">TODO</option>
+          <option value="IN_PROGRESS">IN_PROGRESS</option>
+          <option value="DONE">DONE</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- EMPTY STATE — no tasks at all -->
+    <div *ngIf="tasks.length === 0" class="text-center py-5 bg-white rounded-4 shadow-sm">
+      <h5 class="text-muted">No tasks yet</h5>
+      <p class="text-muted small">
+        Click "Create Task" to get started.
+      </p>
+    </div>
+
+    <!-- EMPTY STATE — tasks exist but none match filter -->
+    <div *ngIf="tasks.length > 0 && filteredTasks.length === 0" class="text-center py-5 bg-white rounded-4 shadow-sm">
+      <h5 class="text-muted">No tasks match your search</h5>
+      <p class="text-muted small">
+        Try a different keyword or status filter.
+      </p>
+    </div>
+
+    <!-- TASK LIST -->
+    <div class="row g-4" *ngIf="filteredTasks.length > 0">
+
+      <div class="col-md-4" *ngFor="let task of filteredTasks">
+
+        <div class="card border-0 shadow-sm task-card h-100 p-3">
+
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <h6 class="fw-semibold mb-0">
+              {{ task.title }}
+            </h6>
+
+            <span class="badge" [ngClass]="getStatusClass(task.status)">
+              {{ task.status }}
+            </span>
+          </div>
+
+          <p class="text-muted small mb-2">
+            {{ task.description }}
+          </p>
+
+          <p class="text-muted small mb-3">
+            Due: {{ task.dueDate }}
+          </p>
+
+          <div class="d-flex justify-content-end gap-2 mt-auto">
+
+            <button class="btn btn-sm btn-outline-primary" (click)="openEditModal(task)">
+              Edit
+            </button>
+
+            <button class="btn btn-sm btn-outline-danger" (click)="deleteTask(task.id!)">
+              Delete
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- ================= CREATE MODAL ================= -->
+
+<div class="modal fade" id="createTaskModal" tabindex="-1">
+
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+
+      <div class="modal-header border-0">
+        <h5 class="modal-title fw-semibold">Create New Task</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal">
+        </button>
+      </div>
+
+      <form #taskForm="ngForm" (ngSubmit)="createTask(taskForm)">
+
+        <div class="modal-body">
+
+          <div class="mb-3">
+            <label class="form-label">Title</label>
+            <input type="text" class="form-control" name="title" [(ngModel)]="newTask.title" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Description</label>
+            <textarea class="form-control" name="description" [(ngModel)]="newTask.description" required>
+            </textarea>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Due Date</label>
+            <input type="date" class="form-control" name="dueDate" [(ngModel)]="newTask.dueDate" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Status</label>
+            <select class="form-select" name="status" [(ngModel)]="newTask.status">
+              <option value="TODO">TODO</option>
+              <option value="IN_PROGRESS">IN_PROGRESS</option>
+              <option value="DONE">DONE</option>
+            </select>
+          </div>
+
+        </div>
+
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+            Cancel
+          </button>
+
+          <button type="submit" class="btn btn-primary">
+            Create Task
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<!-- ================= EDIT MODAL ================= -->
+
+<div class="modal fade" id="editTaskModal" tabindex="-1">
+
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+
+      <div class="modal-header border-0">
+        <h5 class="modal-title fw-semibold">Edit Task</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal">
+        </button>
+      </div>
+
+      <!-- SAFE RENDER -->
+      <form *ngIf="editingTask" #editForm="ngForm" (ngSubmit)="updateTask(editForm)">
+
+        <div class="modal-body">
+
+          <div class="mb-3">
+            <label class="form-label">Title</label>
+            <input type="text" class="form-control" name="title" [(ngModel)]="editingTask.title" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Description</label>
+            <textarea class="form-control" name="description" [(ngModel)]="editingTask.description" required>
+            </textarea>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Due Date</label>
+            <input type="date" class="form-control" name="dueDate" [(ngModel)]="editingTask.dueDate" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Status</label>
+            <select class="form-select" name="status" [(ngModel)]="editingTask.status">
+              <option value="TODO">TODO</option>
+              <option value="IN_PROGRESS">IN_PROGRESS</option>
+              <option value="DONE">DONE</option>
+            </select>
+          </div>
+
+        </div>
+
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+            Cancel
+          </button>
+
+          <button type="submit" class="btn btn-primary">
+            Update Task
+          </button>
+        </div>
+
+
+
+      </form>
+
+    </div>
+  </div>
+</div>

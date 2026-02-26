@@ -1,5 +1,6 @@
 package com.taskflow.taskflow_backend.service;
 
+import com.taskflow.taskflow_backend.dto.TaskRequest;
 import com.taskflow.taskflow_backend.dto.TaskResponse;
 import com.taskflow.taskflow_backend.entity.Task;
 import com.taskflow.taskflow_backend.entity.TaskStatus;
@@ -12,7 +13,6 @@ import com.taskflow.taskflow_backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -26,6 +26,7 @@ public class TaskService {
     // Get all tasks for logged-in user
     // -------------------------------
     public List<TaskResponse> getTasksForUser(String email) {
+
         User user = getUserByEmail(email);
 
         return taskRepository.findByUser(user)
@@ -35,61 +36,65 @@ public class TaskService {
     }
 
     // -------------------------------
-    // Create new task
+    // Create new task (JSON)
     // -------------------------------
     public TaskResponse createTask(String email,
-                                   String title,
-                                   String description,
-                                   LocalDate dueDate,
-                                   TaskStatus status) {
+                                   TaskRequest request) {
 
         User user = getUserByEmail(email);
 
         Task task = Task.builder()
-                .title(title)
-                .description(description)
-                .dueDate(dueDate)
-                .status(status)
+                .title(request.getTitle())
+                .description(request.getDescription())
+                .dueDate(request.getDueDate())
+                .status(
+                        request.getStatus() != null
+                                ? request.getStatus()
+                                : TaskStatus.TODO
+                )
                 .user(user)
                 .build();
 
         Task saved = taskRepository.save(task);
+
         return mapToResponse(saved);
     }
 
     // -------------------------------
     // Get task by ID
     // -------------------------------
-    public TaskResponse getTaskById(String email, Long taskId) {
+    public TaskResponse getTaskById(String email,
+                                    Long taskId) {
+
         Task task = getTaskForUser(email, taskId);
         return mapToResponse(task);
     }
 
     // -------------------------------
-    // Update task
+    // Update task (JSON)
     // -------------------------------
     public TaskResponse updateTask(String email,
                                    Long taskId,
-                                   String title,
-                                   String description,
-                                   LocalDate dueDate,
-                                   TaskStatus status) {
+                                   TaskRequest request) {
 
         Task task = getTaskForUser(email, taskId);
 
-        task.setTitle(title);
-        task.setDescription(description);
-        task.setDueDate(dueDate);
-        task.setStatus(status);
+        task.setTitle(request.getTitle());
+        task.setDescription(request.getDescription());
+        task.setDueDate(request.getDueDate());
+        task.setStatus(request.getStatus());
 
         Task updated = taskRepository.save(task);
+
         return mapToResponse(updated);
     }
 
     // -------------------------------
     // Delete task
     // -------------------------------
-    public void deleteTask(String email, Long taskId) {
+    public void deleteTask(String email,
+                           Long taskId) {
+
         Task task = getTaskForUser(email, taskId);
         taskRepository.delete(task);
     }
@@ -99,25 +104,31 @@ public class TaskService {
     // ===============================
 
     private User getUserByEmail(String email) {
+
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
+                .orElseThrow(() ->
+                        new UserNotFoundException("User not found"));
     }
 
-    private Task getTaskForUser(String email, Long taskId) {
+    private Task getTaskForUser(String email,
+                                Long taskId) {
 
         User user = getUserByEmail(email);
 
         Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new TaskNotFoundException("Task not found"));
+                .orElseThrow(() ->
+                        new TaskNotFoundException("Task not found"));
 
         if (!task.getUser().getId().equals(user.getId())) {
-            throw new TaskAccessDeniedException("You do not have permission to access this task");
+            throw new TaskAccessDeniedException(
+                    "You do not have permission to access this task");
         }
 
         return task;
     }
 
     private TaskResponse mapToResponse(Task task) {
+
         return new TaskResponse(
                 task.getId(),
                 task.getTitle(),

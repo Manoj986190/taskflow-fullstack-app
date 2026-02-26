@@ -5,7 +5,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/taskflow_db
     username: postgres
-    password: Manoj@9861
+    password: hidden
   jpa:
     hibernate:
       ddl-auto: update

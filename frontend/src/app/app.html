@@ -1,1 +1,9 @@
-<router-outlet></router-outlet>
+<router-outlet />
+
+<!-- ================= GLOBAL TOAST ================= -->
+<div
+  *ngIf="toastService.toast()"
+  class="toast-notification"
+  [ngClass]="toastService.toast()?.type">
+  {{ toastService.toast()?.message }}
+</div>

@@ -15,11 +15,15 @@ export class Auth {
 
   private baseUrl = 'http://localhost:8080/api/auth';
 
-  // 🔥 Authentication state management
-  private loggedInSubject = new BehaviorSubject<boolean>(this.hasToken());
+  // 🔐 Authentication state
+  private loggedInSubject = new BehaviorSubject<boolean>(this.checkInitialAuthState());
   isLoggedIn$ = this.loggedInSubject.asObservable();
 
   constructor(private http: HttpClient) {}
+
+  // ===============================
+  // API CALLS
+  // ===============================
 
   register(data: any): Observable<any> {
     return this.http.post(`${this.baseUrl}/register`, data);
@@ -29,9 +33,13 @@ export class Auth {
     return this.http.post<LoginResponse>(`${this.baseUrl}/login`, data);
   }
 
+  // ===============================
+  // TOKEN MANAGEMENT
+  // ===============================
+
   saveToken(token: string) {
     localStorage.setItem('token', token);
-    this.loggedInSubject.next(true);   // 🔥 notify app
+    this.loggedInSubject.next(true);
   }
 
   getToken(): string | null {
@@ -40,14 +48,51 @@ export class Auth {
 
   logout() {
     localStorage.removeItem('token');
-    this.loggedInSubject.next(false);  // 🔥 notify app
+    this.loggedInSubject.next(false);
   }
 
-  private hasToken(): boolean {
-    return !!localStorage.getItem('token');
+  // ===============================
+  // USER INFO FROM TOKEN
+  // ===============================
+
+  getUserName(): string | null {
+    const token = this.getToken();
+    if (!token) return null;
+
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.sub; // backend stores email in "sub"
+    } catch {
+      return null;
+    }
   }
+
+  // ===============================
+  // AUTH VALIDATION
+  // ===============================
 
   isLoggedIn(): boolean {
-    return this.hasToken();
+    const token = this.getToken();
+    if (!token) return false;
+
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const expiry = payload.exp * 1000;
+
+      if (Date.now() > expiry) {
+        this.logout();
+        return false;
+      }
+
+      return true;
+
+    } catch {
+      this.logout();
+      return false;
+    }
+  }
+
+  private checkInitialAuthState(): boolean {
+    return this.isLoggedIn();
   }
 }

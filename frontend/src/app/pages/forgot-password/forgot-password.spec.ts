@@ -1,12 +1,12 @@
 import { TestBed } from '@angular/core/testing';
-import { Login } from './login';
+import { ForgotPassword } from './forgot-password';
 import { provideRouter } from '@angular/router';
 
-describe('Login', () => {
+describe('ForgotPassword', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Login],
+      imports: [ForgotPassword],
       providers: [
         provideRouter([])
       ]
@@ -14,7 +14,7 @@ describe('Login', () => {
   });
 
   it('should create', () => {
-    const fixture = TestBed.createComponent(Login);
+    const fixture = TestBed.createComponent(ForgotPassword);
     const component = fixture.componentInstance;
     expect(component).toBeTruthy();
   });

@@ -1,13 +1,12 @@
 package com.taskflow.taskflow_backend.controller;
 
+import com.taskflow.taskflow_backend.dto.TaskRequest;
 import com.taskflow.taskflow_backend.dto.TaskResponse;
-import com.taskflow.taskflow_backend.entity.TaskStatus;
 import com.taskflow.taskflow_backend.service.TaskService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -38,32 +37,26 @@ public class TaskController {
     }
 
     // -------------------------------
-    // CREATE task
+    // CREATE task (JSON BODY)
     // -------------------------------
     @PostMapping
     public TaskResponse createTask(Authentication authentication,
-                                   @RequestParam String title,
-                                   @RequestParam(required = false) String description,
-                                   @RequestParam LocalDate dueDate,
-                                   @RequestParam(defaultValue = "TODO") TaskStatus status) {
+                                   @RequestBody TaskRequest request) {
 
         String email = authentication.getName();
-        return taskService.createTask(email, title, description, dueDate, status);
+        return taskService.createTask(email, request);
     }
 
     // -------------------------------
-    // UPDATE task
+    // UPDATE task (JSON BODY)
     // -------------------------------
     @PutMapping("/{id}")
     public TaskResponse updateTask(Authentication authentication,
                                    @PathVariable Long id,
-                                   @RequestParam String title,
-                                   @RequestParam(required = false) String description,
-                                   @RequestParam LocalDate dueDate,
-                                   @RequestParam TaskStatus status) {
+                                   @RequestBody TaskRequest request) {
 
         String email = authentication.getName();
-        return taskService.updateTask(email, id, title, description, dueDate, status);
+        return taskService.updateTask(email, id, request);
     }
 
     // -------------------------------
