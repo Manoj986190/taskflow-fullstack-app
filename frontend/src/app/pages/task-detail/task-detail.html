@@ -1,0 +1,121 @@
+<div class="container py-5">
+
+  <!-- BACK BUTTON -->
+  <button class="btn btn-outline-secondary mb-4"
+          (click)="goBack()">
+    ← Back to Dashboard
+  </button>
+
+  <!-- TASK LOADING -->
+  <div *ngIf="isLoadingTask" class="text-center py-4">
+    <div class="spinner-border text-primary"></div>
+  </div>
+
+  <!-- TASK ERROR STATE -->
+  <div *ngIf="taskError && !isLoadingTask"
+       class="alert alert-danger rounded-3">
+    ⚠️ Task not found or failed to load.
+    <a (click)="goBack()"
+       class="alert-link ms-2"
+       style="cursor:pointer;">
+      ← Go back to Dashboard
+    </a>
+  </div>
+
+  <!-- TASK CARD -->
+  <div *ngIf="task && !isLoadingTask"
+       class="card shadow-sm p-4 mb-4">
+
+    <h4 class="fw-bold mb-2">
+      {{ task.title }}
+    </h4>
+
+    <p class="text-muted">
+      {{ task.description }}
+    </p>
+
+    <!-- STATUS BADGE -->
+    <span class="badge"
+          [ngClass]="{
+            'bg-primary':             task.status === 'TODO',
+            'bg-warning text-dark':   task.status === 'IN_PROGRESS',
+            'bg-success':             task.status === 'DONE'
+          }">
+      {{ task.status }}
+    </span>
+
+    <p class="text-muted mt-3 mb-0">
+      Due: {{ task.dueDate }}
+    </p>
+
+  </div>
+
+  <!-- COMMENT SECTION -->
+  <div class="card shadow-sm p-4">
+
+    <h5 class="mb-3">
+      Comments ({{ comments.length }})
+    </h5>
+
+    <!-- COMMENTS LOADING -->
+    <div *ngIf="isLoadingComments"
+         class="text-center py-3">
+      <div class="spinner-border text-primary"></div>
+    </div>
+
+    <!-- EMPTY STATE -->
+    <div *ngIf="!isLoadingComments && comments.length === 0"
+         class="text-muted small py-2">
+      No comments yet. Be the first to comment!
+    </div>
+
+    <!-- COMMENT LIST -->
+    <div *ngFor="let comment of comments"
+         class="border-bottom py-3">
+
+      <div class="d-flex justify-content-between align-items-start">
+
+        <div>
+          <strong>{{ comment.authorFullName }}</strong>
+          <br>
+          <small class="text-muted">
+            {{ getRelativeTime(comment.createdAt) }}
+          </small>
+        </div>
+
+        <button *ngIf="comment.isOwner"
+                class="btn btn-sm btn-outline-danger"
+                (click)="deleteComment(comment.id)">
+          Delete
+        </button>
+
+      </div>
+
+      <p class="mt-2 mb-0">
+        {{ comment.body }}
+      </p>
+
+    </div>
+
+    <!-- ADD COMMENT -->
+    <div class="mt-4">
+
+      <textarea
+        class="form-control mb-2"
+        [(ngModel)]="newComment"
+        placeholder="Write a comment..."
+        rows="3">
+      </textarea>
+
+      <button
+        class="btn btn-primary"
+        [disabled]="!newComment.trim()"
+        (click)="addComment()">
+        Add Comment
+      </button>
+
+    </div>
+
+  </div>
+
+</div>

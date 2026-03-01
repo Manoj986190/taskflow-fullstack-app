@@ -2,36 +2,37 @@ import { Routes } from '@angular/router';
 import { authGuard } from './guards/auth-guard';
 
 export const routes: Routes = [
-
   // ================= LOGIN =================
   {
     path: 'login',
-    loadComponent: () =>
-      import('./pages/login/login').then((m) => m.Login),
+    loadComponent: () => import('./pages/login/login').then((m) => m.Login),
   },
 
   // ================= REGISTER =================
   {
     path: 'register',
-    loadComponent: () =>
-      import('./pages/register/register').then((m) => m.Register),
+    loadComponent: () => import('./pages/register/register').then((m) => m.Register),
   },
 
   // ================= DASHBOARD (PROTECTED) =================
   {
     path: 'dashboard',
     canActivate: [authGuard],
-    loadComponent: () =>
-      import('./pages/dashboard/dashboard').then((m) => m.Dashboard),
+    loadComponent: () => import('./pages/dashboard/dashboard').then((m) => m.Dashboard),
   },
 
   // ================= FORGOT PASSWORD =================
   {
     path: 'forgot-password',
     loadComponent: () =>
-      import('./pages/forgot-password/forgot-password').then(
-        (m) => m.ForgotPassword
-      ),
+      import('./pages/forgot-password/forgot-password').then((m) => m.ForgotPassword),
+  },
+
+   // ================= TASK DETAIL (PROTECTED) =================
+  {
+    path: 'tasks/:id',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/task-detail/task-detail').then((m) => m.TaskDetail),
   },
 
   // ================= DEFAULT REDIRECT =================
@@ -44,8 +45,6 @@ export const routes: Routes = [
   // ================= 404 NOT FOUND =================
   {
     path: '**',
-    loadComponent: () =>
-      import('./pages/not-found/not-found').then((m) => m.NotFound),
+    loadComponent: () => import('./pages/not-found/not-found').then((m) => m.NotFound),
   },
-
 ];

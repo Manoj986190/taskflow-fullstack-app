@@ -16,4 +16,6 @@ public class TaskRequest {
 
     // MUST match enum type
     private TaskStatus status;
+
+    private Long assignedToUserId;
 }

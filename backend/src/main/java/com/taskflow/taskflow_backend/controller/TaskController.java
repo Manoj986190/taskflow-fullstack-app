@@ -4,6 +4,8 @@ import com.taskflow.taskflow_backend.dto.TaskRequest;
 import com.taskflow.taskflow_backend.dto.TaskResponse;
 import com.taskflow.taskflow_backend.service.TaskService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,57 +18,77 @@ public class TaskController {
 
     private final TaskService taskService;
 
-    // -------------------------------
+    // ===============================
     // GET all tasks
-    // -------------------------------
+    // ===============================
     @GetMapping
-    public List<TaskResponse> getTasks(Authentication authentication) {
+    public ResponseEntity<List<TaskResponse>> getTasks(Authentication authentication) {
+
         String email = authentication.getName();
-        return taskService.getTasksForUser(email);
+        return ResponseEntity.ok(
+                taskService.getTasksForUser(email)
+        );
     }
 
-    // -------------------------------
-    // GET task by ID
-    // -------------------------------
+    // ===============================
+    // GET single task by ID
+    // ===============================
     @GetMapping("/{id}")
-    public TaskResponse getTaskById(Authentication authentication,
-                                    @PathVariable Long id) {
+    public ResponseEntity<TaskResponse> getTaskById(
+            Authentication authentication,
+            @PathVariable Long id) {
 
         String email = authentication.getName();
-        return taskService.getTaskById(email, id);
+        return ResponseEntity.ok(
+                taskService.getTaskById(email, id)
+        );
     }
 
-    // -------------------------------
-    // CREATE task (JSON BODY)
-    // -------------------------------
+    // ===============================
+    // CREATE task
+    // ===============================
     @PostMapping
-    public TaskResponse createTask(Authentication authentication,
-                                   @RequestBody TaskRequest request) {
+    public ResponseEntity<TaskResponse> createTask(
+            Authentication authentication,
+            @RequestBody TaskRequest request) {
 
         String email = authentication.getName();
-        return taskService.createTask(email, request);
+
+        TaskResponse response = taskService.createTask(email, request);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(response);
     }
 
-    // -------------------------------
-    // UPDATE task (JSON BODY)
-    // -------------------------------
+    // ===============================
+    // UPDATE task
+    // ===============================
     @PutMapping("/{id}")
-    public TaskResponse updateTask(Authentication authentication,
-                                   @PathVariable Long id,
-                                   @RequestBody TaskRequest request) {
+    public ResponseEntity<TaskResponse> updateTask(
+            Authentication authentication,
+            @PathVariable Long id,
+            @RequestBody TaskRequest request) {
 
         String email = authentication.getName();
-        return taskService.updateTask(email, id, request);
+
+        return ResponseEntity.ok(
+                taskService.updateTask(email, id, request)
+        );
     }
 
-    // -------------------------------
+    // ===============================
     // DELETE task
-    // -------------------------------
+    // ===============================
     @DeleteMapping("/{id}")
-    public void deleteTask(Authentication authentication,
-                           @PathVariable Long id) {
+    public ResponseEntity<Void> deleteTask(
+            Authentication authentication,
+            @PathVariable Long id) {
 
         String email = authentication.getName();
+
         taskService.deleteTask(email, id);
+
+        return ResponseEntity.noContent().build();
     }
 }

@@ -62,6 +62,28 @@ public class GlobalExceptionHandler {
                 Map.of("status", 403, "message", ex.getMessage()));
     }
 
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<?> handleNotFound(ResourceNotFoundException ex) {
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of(
+                        "timestamp", LocalDateTime.now(),
+                        "status", 404,
+                        "message", ex.getMessage()
+                ));
+    }
+
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<?> handleForbidden(ForbiddenException ex) {
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Map.of(
+                        "timestamp", LocalDateTime.now(),
+                        "status", 403,
+                        "message", ex.getMessage()
+                ));
+    }
+
     private ResponseEntity<Map<String, Object>> buildResponse(String message, HttpStatus status) {
 
         Map<String, Object> body = new HashMap<>();

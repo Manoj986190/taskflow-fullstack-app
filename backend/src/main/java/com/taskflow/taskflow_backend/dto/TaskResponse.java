@@ -11,5 +11,11 @@ public record TaskResponse(
         LocalDate dueDate,
         TaskStatus status,
         LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        LocalDateTime updatedAt,
+
+        Long userId,   
+
+        // 🔥 NEW F-EXT-02 FIELDS
+        Long assignedToUserId,
+        String assignedToFullName
 ) {}

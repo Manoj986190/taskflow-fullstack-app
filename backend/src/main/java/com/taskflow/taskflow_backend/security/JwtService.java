@@ -22,13 +22,14 @@ public class JwtService {
             1000 * 60 * 60 * 24; // 24 hours
 
     // ===============================
-    // TOKEN GENERATION
+    // TOKEN GENERATION (UPDATED)
     // ===============================
 
-    public String generateToken(String email) {
+    public String generateToken(String email, Long userId) {
 
         return Jwts.builder()
                 .setSubject(email)
+                .claim("userId", userId)   // ✅ ADD THIS
                 .setIssuedAt(new Date())
                 .setExpiration(
                         new Date(System.currentTimeMillis() + EXPIRATION_TIME)
@@ -43,6 +44,10 @@ public class JwtService {
 
     public String extractEmail(String token) {
         return extractAllClaims(token).getSubject();
+    }
+
+    public Long extractUserId(String token) {
+        return extractAllClaims(token).get("userId", Long.class);
     }
 
     private Claims extractAllClaims(String token) {

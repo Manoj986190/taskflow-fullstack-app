@@ -22,37 +22,45 @@ public class TaskService {
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
 
-    // -------------------------------
-    // Get all tasks for logged-in user
-    // -------------------------------
+    // =========================================================
+    // GET ALL TASKS (Owner OR Assigned)
+    // =========================================================
     public List<TaskResponse> getTasksForUser(String email) {
 
         User user = getUserByEmail(email);
 
-        return taskRepository.findByUser(user)
+        return taskRepository
+                .findByUserOrAssignedTo(user, user)
                 .stream()
                 .map(this::mapToResponse)
                 .toList();
     }
 
-    // -------------------------------
-    // Create new task (JSON)
-    // -------------------------------
+    // =========================================================
+    // CREATE TASK (Owner Only)
+    // =========================================================
     public TaskResponse createTask(String email,
                                    TaskRequest request) {
 
         User user = getUserByEmail(email);
 
+        User assignedUser = null;
+
+        if (request.getAssignedToUserId() != null) {
+            assignedUser = userRepository.findById(request.getAssignedToUserId())
+                    .orElseThrow(() ->
+                            new UserNotFoundException("Assigned user not found"));
+        }
+
         Task task = Task.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .dueDate(request.getDueDate())
-                .status(
-                        request.getStatus() != null
-                                ? request.getStatus()
-                                : TaskStatus.TODO
-                )
-                .user(user)
+                .status(request.getStatus() != null
+                        ? request.getStatus()
+                        : TaskStatus.TODO)
+                .user(user) // OWNER
+                .assignedTo(assignedUser)
                 .build();
 
         Task saved = taskRepository.save(task);
@@ -60,48 +68,90 @@ public class TaskService {
         return mapToResponse(saved);
     }
 
-    // -------------------------------
-    // Get task by ID
-    // -------------------------------
+    // =========================================================
+    // GET TASK BY ID (Owner OR Assignee can view)
+    // =========================================================
     public TaskResponse getTaskById(String email,
                                     Long taskId) {
 
-        Task task = getTaskForUser(email, taskId);
+        Task task = getTaskForView(email, taskId);
         return mapToResponse(task);
     }
 
-    // -------------------------------
-    // Update task (JSON)
-    // -------------------------------
+    // =========================================================
+    // UPDATE TASK
+    // Owner → Full Edit
+    // Assignee → Status Only
+    // =========================================================
     public TaskResponse updateTask(String email,
                                    Long taskId,
                                    TaskRequest request) {
 
-        Task task = getTaskForUser(email, taskId);
+        User user = getUserByEmail(email);
 
-        task.setTitle(request.getTitle());
-        task.setDescription(request.getDescription());
-        task.setDueDate(request.getDueDate());
-        task.setStatus(request.getStatus());
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() ->
+                        new TaskNotFoundException("Task not found"));
+
+        boolean isOwner =
+                task.getUser().getId().equals(user.getId());
+
+        boolean isAssignee =
+                task.getAssignedTo() != null &&
+                task.getAssignedTo().getId().equals(user.getId());
+
+        if (!isOwner && !isAssignee) {
+            throw new TaskAccessDeniedException(
+                    "You do not have permission to modify this task");
+        }
+
+        // ============================
+        // OWNER → FULL EDIT
+        // ============================
+        if (isOwner) {
+
+            task.setTitle(request.getTitle());
+            task.setDescription(request.getDescription());
+            task.setDueDate(request.getDueDate());
+            task.setStatus(request.getStatus());
+
+            if (request.getAssignedToUserId() != null) {
+                User assignedUser = userRepository
+                        .findById(request.getAssignedToUserId())
+                        .orElseThrow(() ->
+                                new UserNotFoundException("Assigned user not found"));
+
+                task.setAssignedTo(assignedUser);
+            } else {
+                task.setAssignedTo(null);
+            }
+        }
+
+        // ============================
+        // ASSIGNEE → STATUS ONLY
+        // ============================
+        else {
+            task.setStatus(request.getStatus());
+        }
 
         Task updated = taskRepository.save(task);
 
         return mapToResponse(updated);
     }
 
-    // -------------------------------
-    // Delete task
-    // -------------------------------
+    // =========================================================
+    // DELETE TASK (Owner Only)
+    // =========================================================
     public void deleteTask(String email,
                            Long taskId) {
 
-        Task task = getTaskForUser(email, taskId);
+        Task task = getTaskForOwnerOnly(email, taskId);
         taskRepository.delete(task);
     }
 
-    // ===============================
+    // =========================================================
     // PRIVATE HELPERS
-    // ===============================
+    // =========================================================
 
     private User getUserByEmail(String email) {
 
@@ -110,8 +160,34 @@ public class TaskService {
                         new UserNotFoundException("User not found"));
     }
 
-    private Task getTaskForUser(String email,
+    // View allowed for Owner OR Assignee
+    private Task getTaskForView(String email,
                                 Long taskId) {
+
+        User user = getUserByEmail(email);
+
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() ->
+                        new TaskNotFoundException("Task not found"));
+
+        boolean isOwner =
+                task.getUser().getId().equals(user.getId());
+
+        boolean isAssignee =
+                task.getAssignedTo() != null &&
+                task.getAssignedTo().getId().equals(user.getId());
+
+        if (!isOwner && !isAssignee) {
+            throw new TaskAccessDeniedException(
+                    "You do not have permission to access this task");
+        }
+
+        return task;
+    }
+
+    // Only Owner allowed
+    private Task getTaskForOwnerOnly(String email,
+                                     Long taskId) {
 
         User user = getUserByEmail(email);
 
@@ -121,7 +197,7 @@ public class TaskService {
 
         if (!task.getUser().getId().equals(user.getId())) {
             throw new TaskAccessDeniedException(
-                    "You do not have permission to access this task");
+                    "Only task owner can delete this task");
         }
 
         return task;
@@ -136,7 +212,14 @@ public class TaskService {
                 task.getDueDate(),
                 task.getStatus(),
                 task.getCreatedAt(),
-                task.getUpdatedAt()
+                task.getUpdatedAt(),
+                task.getUser().getId(), // 🔥 OWNER ID ADDED
+                task.getAssignedTo() != null
+                        ? task.getAssignedTo().getId()
+                        : null,
+                task.getAssignedTo() != null
+                        ? task.getAssignedTo().getFullName()
+                        : null
         );
     }
 }
