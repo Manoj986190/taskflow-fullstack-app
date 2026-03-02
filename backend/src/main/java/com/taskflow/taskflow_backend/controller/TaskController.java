@@ -2,6 +2,7 @@ package com.taskflow.taskflow_backend.controller;
 
 import com.taskflow.taskflow_backend.dto.TaskRequest;
 import com.taskflow.taskflow_backend.dto.TaskResponse;
+import com.taskflow.taskflow_backend.entity.TaskPriority;
 import com.taskflow.taskflow_backend.service.TaskService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,12 +23,14 @@ public class TaskController {
     // GET all tasks
     // ===============================
     @GetMapping
-    public ResponseEntity<List<TaskResponse>> getTasks(Authentication authentication) {
+    public ResponseEntity<List<TaskResponse>> getTasks(
+            Authentication authentication,
+            @RequestParam(required = false) TaskPriority priority) {
 
         String email = authentication.getName();
+
         return ResponseEntity.ok(
-                taskService.getTasksForUser(email)
-        );
+                taskService.getTasksForUser(email, priority));
     }
 
     // ===============================

@@ -41,11 +41,22 @@ export class Dashboard implements OnInit {
   selectedStatus: string = '';
   selectedAssignedFilter: string = '';
 
+  sortByPriority: boolean = false; // 👈 ADD HERE
+
+  today: string = (() => {
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  })();
+
   newTask: Task = {
     title: '',
     description: '',
     dueDate: '',
     status: 'TODO',
+    priority: 'MEDIUM', // 👈 ADD
     assignedToUserId: null,
   };
 
@@ -132,6 +143,25 @@ export class Dashboard implements OnInit {
 
       return matchesSearch && matchesStatus && matchesAssigned;
     });
+    if (this.sortByPriority) {
+      const priorityOrder: any = {
+        HIGH: 1,
+        MEDIUM: 2,
+        LOW: 3,
+      };
+
+      this.filteredTasks.sort((a, b) => {
+        // Keep status grouping stable
+        if (a.status !== b.status) {
+          return a.status.localeCompare(b.status);
+        }
+
+        return (
+          (priorityOrder[a.priority || 'MEDIUM'] || 2) -
+          (priorityOrder[b.priority || 'MEDIUM'] || 2)
+        );
+      });
+    }
   }
 
   onSearchChange() {
@@ -139,6 +169,24 @@ export class Dashboard implements OnInit {
   }
   onStatusChange() {
     this.applyFilters();
+  }
+
+  togglePrioritySort() {
+    this.sortByPriority = !this.sortByPriority;
+    this.applyFilters();
+  }
+
+  getPriorityClass(priority: string | undefined) {
+    switch (priority) {
+      case 'HIGH':
+        return 'bg-danger';
+      case 'MEDIUM':
+        return 'bg-warning text-dark';
+      case 'LOW':
+        return 'bg-success';
+      default:
+        return 'bg-secondary';
+    }
   }
 
   openCreateModal() {

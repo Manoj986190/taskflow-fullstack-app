@@ -105,6 +105,14 @@
       </div>
     </div>
 
+    <!-- SORT TOGGLE -->
+    <div class="mb-3 text-end">
+      <button class="btn btn-outline-dark btn-sm" (click)="togglePrioritySort()">
+        Sort by Priority
+        <span *ngIf="sortByPriority">✓</span>
+      </button>
+    </div>
+
     <!-- EMPTY STATE: NO TASKS AT ALL -->
     <div *ngIf="tasks.length === 0"
          class="text-center py-5 bg-white rounded-4 shadow-sm">
@@ -142,10 +150,17 @@
               {{ task.title }}
             </h6>
 
-            <span class="badge"
-                  [ngClass]="getStatusClass(task.status)">
-              {{ task.status }}
-            </span>
+            <div class="d-flex gap-2">
+              <!-- STATUS BADGE -->
+              <span class="badge" [ngClass]="getStatusClass(task.status)">
+                {{ task.status }}
+              </span>
+            
+              <!-- PRIORITY BADGE -->
+              <span class="badge" [ngClass]="getPriorityClass(task.priority)">
+                {{ task.priority }}
+              </span>
+            </div>
           </div>
 
           <div class="mb-2">
@@ -229,6 +244,7 @@
                    class="form-control"
                    name="dueDate"
                    [(ngModel)]="newTask.dueDate"
+                   [min]="today"
                    required>
           </div>
 
@@ -241,6 +257,16 @@
               <option value="TODO">TODO</option>
               <option value="IN_PROGRESS">IN_PROGRESS</option>
               <option value="DONE">DONE</option>
+            </select>
+          </div>
+
+          <!--PRIORITY-->
+          <div class="mb-3">
+            <label class="form-label">Priority</label>
+            <select class="form-select" name="priority" [(ngModel)]="newTask.priority">
+              <option value="HIGH">HIGH</option>
+              <option value="MEDIUM">MEDIUM</option>
+              <option value="LOW">LOW</option>
             </select>
           </div>
 
@@ -326,6 +352,7 @@
                    name="dueDate"
                    [(ngModel)]="editingTask.dueDate"
                    [disabled]="!isOwner(editingTask)"
+                   [min]="today"
                    required>
           </div>
 
@@ -338,6 +365,16 @@
               <option value="TODO">TODO</option>
               <option value="IN_PROGRESS">IN_PROGRESS</option>
               <option value="DONE">DONE</option>
+            </select>
+          </div>
+
+          <!--PRIORITY-->
+          <div class="mb-3">
+            <label class="form-label">Priority</label>
+            <select class="form-select" name="priority" [(ngModel)]="editingTask.priority" [disabled]="!isOwner(editingTask)">
+              <option value="HIGH">HIGH</option>
+              <option value="MEDIUM">MEDIUM</option>
+              <option value="LOW">LOW</option>
             </select>
           </div>
 

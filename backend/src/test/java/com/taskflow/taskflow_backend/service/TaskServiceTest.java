@@ -62,7 +62,7 @@ class TaskServiceTest {
 
         // Act
         List<TaskResponse> result =
-                taskService.getTasksForUser(email);
+                taskService.getTasksForUser(email, null);
 
         // Assert
         assertEquals(1, result.size());

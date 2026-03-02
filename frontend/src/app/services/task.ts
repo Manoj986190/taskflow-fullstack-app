@@ -55,6 +55,7 @@ export interface Task {
   description: string;
   dueDate: string;
   status: string;
+  priority?: 'HIGH' | 'MEDIUM' | 'LOW'; // 👈 ADD THIS
 
   // ✅ NEW FIELDS (Assignment)
   userId?: number;                // OWNER ID

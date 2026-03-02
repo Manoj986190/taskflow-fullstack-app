@@ -3,6 +3,7 @@ package com.taskflow.taskflow_backend.service;
 import com.taskflow.taskflow_backend.dto.TaskRequest;
 import com.taskflow.taskflow_backend.dto.TaskResponse;
 import com.taskflow.taskflow_backend.entity.Task;
+import com.taskflow.taskflow_backend.entity.TaskPriority;
 import com.taskflow.taskflow_backend.entity.TaskStatus;
 import com.taskflow.taskflow_backend.entity.User;
 import com.taskflow.taskflow_backend.exception.TaskAccessDeniedException;
@@ -25,15 +26,21 @@ public class TaskService {
     // =========================================================
     // GET ALL TASKS (Owner OR Assigned)
     // =========================================================
-    public List<TaskResponse> getTasksForUser(String email) {
+    public List<TaskResponse> getTasksForUser(String email,TaskPriority priority) {
 
         User user = getUserByEmail(email);
+        List<Task> tasks;
+        if (priority != null) {
+        tasks = taskRepository
+                .findTasksByUserOrAssignedAndPriority(user, priority);
+        } else {
+        tasks = taskRepository
+                .findByUserOrAssignedTo(user, user);
+        }
 
-        return taskRepository
-                .findByUserOrAssignedTo(user, user)
-                .stream()
-                .map(this::mapToResponse)
-                .toList();
+        return tasks.stream()
+            .map(this::mapToResponse)
+            .toList();
     }
 
     // =========================================================
@@ -59,6 +66,9 @@ public class TaskService {
                 .status(request.getStatus() != null
                         ? request.getStatus()
                         : TaskStatus.TODO)
+                .priority(request.getPriority() != null
+                        ? request.getPriority()
+                        : TaskPriority.MEDIUM)
                 .user(user) // OWNER
                 .assignedTo(assignedUser)
                 .build();
@@ -114,6 +124,9 @@ public class TaskService {
             task.setDescription(request.getDescription());
             task.setDueDate(request.getDueDate());
             task.setStatus(request.getStatus());
+            if (request.getPriority() != null) {
+                    task.setPriority(request.getPriority());
+                }
 
             if (request.getAssignedToUserId() != null) {
                 User assignedUser = userRepository
@@ -211,6 +224,7 @@ public class TaskService {
                 task.getDescription(),
                 task.getDueDate(),
                 task.getStatus(),
+                task.getPriority(),   // 👈 ADD THIS
                 task.getCreatedAt(),
                 task.getUpdatedAt(),
                 task.getUser().getId(), // 🔥 OWNER ID ADDED

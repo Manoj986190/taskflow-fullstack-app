@@ -1,5 +1,6 @@
 package com.taskflow.taskflow_backend.dto;
 
+import com.taskflow.taskflow_backend.entity.TaskPriority;
 import com.taskflow.taskflow_backend.entity.TaskStatus;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -10,6 +11,7 @@ public record TaskResponse(
         String description,
         LocalDate dueDate,
         TaskStatus status,
+        TaskPriority priority,   // ✅ NEW FIELD
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
 

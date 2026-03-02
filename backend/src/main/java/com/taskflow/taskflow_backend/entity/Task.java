@@ -58,4 +58,9 @@ public class Task {
     @ManyToOne
     @JoinColumn(name = "assigned_to", foreignKey = @ForeignKey(name = "fk_task_assigned_to"))
     private User assignedTo;
+
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column
+    private TaskPriority priority = TaskPriority.MEDIUM;
 }
