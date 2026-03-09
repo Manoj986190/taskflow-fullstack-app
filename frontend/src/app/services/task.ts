@@ -63,6 +63,13 @@ export interface Task {
   assignedToFullName?: string | null;
 }
 
+export interface Activity {
+  id: number;
+  actionCode: string;
+  message: string;
+  createdAt: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -93,5 +100,9 @@ export class TaskService {
 
   getSummary() {
     return this.http.get<any>(`${this.baseUrl}/summary`);
+  }
+
+  getActivity() {
+    return this.http.get<Activity[]>(`${this.baseUrl.replace('/tasks','')}/activity`);
   }
 }

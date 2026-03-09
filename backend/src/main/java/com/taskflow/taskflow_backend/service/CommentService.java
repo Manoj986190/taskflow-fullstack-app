@@ -19,6 +19,7 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
+    private final ActivityService activityService;
 
     // =========================
     // GET COMMENTS
@@ -66,8 +67,12 @@ public class CommentService {
                 .body(request.getBody())
                 .build();
 
-        TaskComment saved =
-                commentRepository.save(comment);
+        TaskComment saved = commentRepository.save(comment);
+        activityService.log(
+                        author,
+                        task,
+                        ActionCode.COMMENT_ADDED,
+                        author.getFullName() + " commented on '" + task.getTitle() + "'");
 
         return mapToDTO(saved, email);
     }

@@ -3,6 +3,7 @@ package com.taskflow.taskflow_backend.service;
 import com.taskflow.taskflow_backend.dto.TaskRequest;
 import com.taskflow.taskflow_backend.dto.TaskResponse;
 import com.taskflow.taskflow_backend.dto.TaskSummaryResponse;
+import com.taskflow.taskflow_backend.entity.ActionCode;
 import com.taskflow.taskflow_backend.entity.Task;
 import com.taskflow.taskflow_backend.entity.TaskPriority;
 import com.taskflow.taskflow_backend.entity.TaskStatus;
@@ -24,6 +25,7 @@ public class TaskService {
 
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
+    private final ActivityService activityService;
 
     // =========================================================
     // GET ALL TASKS (Owner OR Assigned)
@@ -77,6 +79,12 @@ public class TaskService {
 
         Task saved = taskRepository.save(task);
 
+        activityService.log(
+                        user,
+                        saved,
+                        ActionCode.TASK_CREATED,
+                        user.getFullName() + " created task '" + saved.getTitle() + "'");
+
         return mapToResponse(saved);
     }
 
@@ -126,8 +134,20 @@ public class TaskService {
             task.setDescription(request.getDescription());
             task.setDueDate(request.getDueDate());
             task.setStatus(request.getStatus());
+            activityService.log(
+                            user,
+                            task,
+                            ActionCode.TASK_STATUS_CHANGED,
+                            user.getFullName() + " changed status of '" + task.getTitle() +
+                                            "' to " + task.getStatus());
             if (request.getPriority() != null) {
                     task.setPriority(request.getPriority());
+                    activityService.log(
+                                    user,
+                                    task,
+                                    ActionCode.TASK_PRIORITY_CHANGED,
+                                    user.getFullName() + " changed priority of '" + task.getTitle() +
+                                                    "' to " + task.getPriority());
                 }
 
             if (request.getAssignedToUserId() != null) {
@@ -137,6 +157,12 @@ public class TaskService {
                                 new UserNotFoundException("Assigned user not found"));
 
                 task.setAssignedTo(assignedUser);
+                activityService.log(
+                                user,
+                                task,
+                                ActionCode.TASK_ASSIGNED,
+                                user.getFullName() + " assigned '" + task.getTitle() +
+                                                "' to " + assignedUser.getFullName());
             } else {
                 task.setAssignedTo(null);
             }
@@ -161,6 +187,13 @@ public class TaskService {
                            Long taskId) {
 
         Task task = getTaskForOwnerOnly(email, taskId);
+        activityService.log(
+                        getUserByEmail(email),
+                        task,
+                        ActionCode.TASK_DELETED,
+                        getUserByEmail(email).getFullName() +
+                                        " deleted task '" + task.getTitle() + "'");
+
         taskRepository.delete(task);
     }
 

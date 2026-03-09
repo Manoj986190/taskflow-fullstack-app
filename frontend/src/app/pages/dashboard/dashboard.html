@@ -12,17 +12,13 @@
           {{ userName }}
         </span>
 
-        <div class="avatar dropdown-toggle"
-             role="button"
-             data-bs-toggle="dropdown">
+        <div class="avatar dropdown-toggle" role="button" data-bs-toggle="dropdown">
           {{ userInitial }}
         </div>
 
         <ul class="dropdown-menu dropdown-menu-end shadow border-0">
           <li>
-            <button class="dropdown-item text-danger"
-                    type="button"
-                    (click)="logout()">
+            <button class="dropdown-item text-danger" type="button" (click)="logout()">
               Logout
             </button>
           </li>
@@ -32,241 +28,277 @@
   </nav>
 
   <div class="container py-5">
-
-    <!-- STATS -->
-    <div class="row mb-4 g-4">
-      <div class="col-md-3">
-        <div class="stat-card bg-primary text-white">
-          <h6>Total Tasks</h6>
-          <h3>{{ totalTasks }}</h3>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="stat-card bg-secondary text-white">
-          <h6>Todo</h6>
-          <h3>{{ todoCount }}</h3>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="stat-card bg-warning text-dark">
-          <h6>In Progress</h6>
-          <h3>{{ inProgressCount }}</h3>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="stat-card bg-success text-white">
-          <h6>Completed</h6>
-          <h3>{{ doneCount }}</h3>
-        </div>
-      </div>
-    </div>
-
-    <!-- 🔥 INSERT ANALYTICS PANEL HERE -->
-    
-    <div class="mb-4">
-    
-      <button class="btn btn-primary mb-3 shadow-sm " (click)="toggleAnalytics()">
-        {{ showAnalytics ? 'Hide Analytics' : 'Show Analytics' }}
-      </button>
-    
-      <div *ngIf="showAnalytics">
-    
-        <div *ngIf="summary?.totalTasks === 0" class="alert alert-info">
-          No data yet — create your first task to see analytics!
-        </div>
-    
-        <div *ngIf="summary?.totalTasks > 0">
-    
-          <div class="row g-4">
-    
-            <!-- STATUS CHART -->
-            <div class="col-md-6">
-              <div class="card p-3 shadow-sm">
-                <h6>Task Status Breakdown</h6>
-                <canvas id="statusChart"></canvas>
-              </div>
+    <div class="row">
+      <div class="col-12 col-lg-9 order-lg-1 order-2">
+        <!-- STATS -->
+        <div class="row mb-4 g-4">
+          <div class="col-md-3">
+            <div class="stat-card bg-primary text-white">
+              <h6>Total Tasks</h6>
+              <h3>{{ totalTasks }}</h3>
             </div>
-    
-            <!-- PRIORITY CHART -->
-            <div class="col-md-6">
-              <div class="card p-3 shadow-sm">
-                <h6>Tasks by Priority</h6>
-                <canvas id="priorityChart"></canvas>
-              </div>
-            </div>
-    
           </div>
-    
-          <!-- KPI CARDS -->
-          <div class="row g-3 mt-3">
-    
-            <div class="col-md-4">
-              <div class="card text-center p-3 shadow-sm">
-                <h6>Completion Rate</h6>
-                <h4>{{ summary.completionRate }}%</h4>
-              </div>
+          <div class="col-md-3">
+            <div class="stat-card bg-secondary text-white">
+              <h6>Todo</h6>
+              <h3>{{ todoCount }}</h3>
             </div>
-    
-            <div class="col-md-4">
-              <div class="card text-center p-3 shadow-sm">
-                <h6>Overdue Tasks</h6>
-                <h4>{{ summary.overdueCount }}</h4>
-              </div>
-            </div>
-    
-            <div class="col-md-4">
-              <div class="card text-center p-3 shadow-sm">
-                <h6>Tasks This Week</h6>
-                <h4>{{ summary.tasksThisWeek }}</h4>
-              </div>
-            </div>
-    
           </div>
-    
+          <div class="col-md-3">
+            <div class="stat-card bg-warning text-dark">
+              <h6>In Progress</h6>
+              <h3>{{ inProgressCount }}</h3>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="stat-card bg-success text-white">
+              <h6>Completed</h6>
+              <h3>{{ doneCount }}</h3>
+            </div>
+          </div>
         </div>
-    
-      </div>
-    
-    </div>
 
-    <!-- HEADER -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h4 class="fw-semibold mb-0">My Tasks</h4>
-      <button class="btn btn-primary shadow-sm"
-              type="button"
-              (click)="openCreateModal()">
-        + Create Task
-      </button>
-    </div>
+        <!-- 🔥 INSERT ANALYTICS PANEL HERE -->
 
-    <!-- FILTERS -->
-    <div class="row mb-4 g-3">
-      <div class="col-md-6">
-        <div class="input-group">
-          <span class="input-group-text bg-white border-end-0">🔎</span>
-          <input type="text"
-                 class="form-control border-start-0 ps-0"
-                 placeholder="Search tasks..."
-                 [(ngModel)]="searchQuery"
-                 (ngModelChange)="onSearchChange()" />
+        <div class="mb-4">
+
+          <button class="btn btn-primary mb-3 shadow-sm " (click)="toggleAnalytics()">
+            {{ showAnalytics ? 'Hide Analytics' : 'Show Analytics' }}
+          </button>
+
+          <div *ngIf="showAnalytics">
+
+            <div *ngIf="summary?.totalTasks === 0" class="alert alert-info">
+              No data yet — create your first task to see analytics!
+            </div>
+
+            <div *ngIf="summary?.totalTasks > 0">
+
+              <div class="row g-4">
+
+                <!-- STATUS CHART -->
+                <div class="col-md-6">
+                  <div class="card p-3 shadow-sm">
+                    <h6>Task Status Breakdown</h6>
+                    <div class="chart-container">
+                      <canvas id="statusChart"></canvas>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- PRIORITY CHART -->
+                <div class="col-md-6">
+                  <div class="card p-3 shadow-sm">
+                    <h6>Tasks by Priority</h6>
+                    <div class="chart-container">
+                      <canvas id="priorityChart"></canvas>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- KPI CARDS -->
+              <div class="row g-3 mt-3">
+
+                <div class="col-md-4">
+                  <div class="card text-center p-3 shadow-sm">
+                    <h6>Completion Rate</h6>
+                    <h4>{{ summary.completionRate }}%</h4>
+                  </div>
+                </div>
+
+                <div class="col-md-4">
+                  <div class="card text-center p-3 shadow-sm">
+                    <h6>Overdue Tasks</h6>
+                    <h4>{{ summary.overdueCount }}</h4>
+                  </div>
+                </div>
+
+                <div class="col-md-4">
+                  <div class="card text-center p-3 shadow-sm">
+                    <h6>Tasks This Week</h6>
+                    <h4>{{ summary.tasksThisWeek }}</h4>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
         </div>
-      </div>
 
-      <div class="col-md-3">
-        <select class="form-select"
-                [(ngModel)]="selectedStatus"
-                (ngModelChange)="onStatusChange()">
-          <option value="">All Status</option>
-          <option value="TODO">TODO</option>
-          <option value="IN_PROGRESS">IN_PROGRESS</option>
-          <option value="DONE">DONE</option>
-        </select>
-      </div>
+        <!-- HEADER -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h4 class="fw-semibold mb-0">My Tasks</h4>
+          <button class="btn btn-primary shadow-sm" type="button" (click)="openCreateModal()">
+            + Create Task
+          </button>
+        </div>
 
-      <div class="col-md-3">
-        <select class="form-select"
-                [(ngModel)]="selectedAssignedFilter"
-                (ngModelChange)="applyFilters()">
-          <option value="">All Tasks</option>
-          <option value="me">Assigned To Me</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- SORT TOGGLE -->
-    <div class="mb-3 text-end">
-      <button class="btn btn-outline-dark btn-sm" (click)="togglePrioritySort()">
-        Sort by Priority
-        <span *ngIf="sortByPriority">✓</span>
-      </button>
-    </div>
-
-    <!-- EMPTY STATE: NO TASKS AT ALL -->
-    <div *ngIf="tasks.length === 0"
-         class="text-center py-5 bg-white rounded-4 shadow-sm">
-      <h5 class="text-muted">No tasks yet</h5>
-      <p class="text-muted small">
-        Click "Create Task" to get started.
-      </p>
-    </div>
-
-    <!-- EMPTY STATE: FILTER RETURNED NOTHING -->
-    <div *ngIf="tasks.length > 0 && filteredTasks.length === 0"
-         class="text-center py-5 bg-white rounded-4 shadow-sm">
-      <h5 class="text-muted">No tasks found</h5>
-      <p class="text-muted small">
-        No tasks match the selected filter.
-      </p>
-      <button class="btn btn-outline-primary mt-2"
-              type="button"
-              (click)="selectedStatus=''; selectedAssignedFilter=''; applyFilters()">
-        Reset Filters
-      </button>
-    </div>
-
-    <!-- TASK LIST -->
-    <div class="row g-4" *ngIf="filteredTasks.length > 0">
-
-      <div class="col-md-4" *ngFor="let task of filteredTasks">
-
-        <div class="card border-0 shadow-sm task-card h-100 p-3"
-             style="cursor:pointer;"
-             (click)="openTask(task.id!)">
-
-          <div class="d-flex justify-content-between align-items-start mb-2">
-            <h6 class="fw-semibold mb-0">
-              {{ task.title }}
-            </h6>
-
-            <div class="d-flex gap-2">
-              <!-- STATUS BADGE -->
-              <span class="badge" [ngClass]="getStatusClass(task.status)">
-                {{ task.status }}
-              </span>
-            
-              <!-- PRIORITY BADGE -->
-              <span class="badge" [ngClass]="getPriorityClass(task.priority)">
-                {{ task.priority }}
-              </span>
+        <!-- FILTERS -->
+        <div class="row mb-4 g-3">
+          <div class="col-md-6">
+            <div class="input-group">
+              <span class="input-group-text bg-white border-end-0">🔎</span>
+              <input type="text" class="form-control border-start-0 ps-0" placeholder="Search tasks..."
+                [(ngModel)]="searchQuery" (ngModelChange)="onSearchChange()" />
             </div>
           </div>
 
-          <div class="mb-2">
-            <span *ngIf="isOwner(task)" class="badge bg-primary me-1">Owner</span>
-            <span *ngIf="isAssignee(task) && !isOwner(task)" class="badge bg-success me-1">Assigned to you</span>
-            <span *ngIf="task.assignedToFullName && !isAssignee(task)" class="badge bg-info text-dark">
-              Assigned: {{ task.assignedToFullName }}
-            </span>
-            <span *ngIf="!task.assignedToFullName" class="badge bg-light text-muted">
-              Unassigned
-            </span>
+          <div class="col-md-3">
+            <select class="form-select" [(ngModel)]="selectedStatus" (ngModelChange)="onStatusChange()">
+              <option value="">All Status</option>
+              <option value="TODO">TODO</option>
+              <option value="IN_PROGRESS">IN_PROGRESS</option>
+              <option value="DONE">DONE</option>
+            </select>
           </div>
 
-          <p class="text-muted small mb-2">{{ task.description }}</p>
-          <p class="text-muted small mb-3">Due: {{ task.dueDate }}</p>
+          <div class="col-md-3">
+            <select class="form-select" [(ngModel)]="selectedAssignedFilter" (ngModelChange)="applyFilters()">
+              <option value="">All Tasks</option>
+              <option value="me">Assigned To Me</option>
+            </select>
+          </div>
+        </div>
 
-          <div class="d-flex justify-content-end gap-2 mt-auto">
+        <!-- SORT TOGGLE -->
+        <div class="mb-3 text-end">
+          <button class="btn btn-outline-dark btn-sm" (click)="togglePrioritySort()">
+            Sort by Priority
+            <span *ngIf="sortByPriority">✓</span>
+          </button>
+        </div>
 
-            <button class="btn btn-sm btn-outline-primary"
-                    type="button"
-                    (click)="openEditModal(task); $event.stopPropagation()">
-              Edit
+        <!-- EMPTY STATE: NO TASKS AT ALL -->
+        <div *ngIf="tasks.length === 0" class="text-center py-5 bg-white rounded-4 shadow-sm">
+          <h5 class="text-muted">No tasks yet</h5>
+          <p class="text-muted small">
+            Click "Create Task" to get started.
+          </p>
+        </div>
+
+        <!-- EMPTY STATE: FILTER RETURNED NOTHING -->
+        <div *ngIf="tasks.length > 0 && filteredTasks.length === 0"
+          class="text-center py-5 bg-white rounded-4 shadow-sm">
+          <h5 class="text-muted">No tasks found</h5>
+          <p class="text-muted small">
+            No tasks match the selected filter.
+          </p>
+          <button class="btn btn-outline-primary mt-2" type="button"
+            (click)="selectedStatus=''; selectedAssignedFilter=''; applyFilters()">
+            Reset Filters
+          </button>
+        </div>
+
+        <!-- TASK LIST -->
+        <div class="row g-4" *ngIf="filteredTasks.length > 0">
+
+          <div class="col-md-4" *ngFor="let task of filteredTasks">
+
+            <div class="card border-0 shadow-sm task-card h-100 p-3" style="cursor:pointer;"
+              (click)="openTask(task.id!)">
+
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <h6 class="fw-semibold mb-0">
+                  {{ task.title }}
+                </h6>
+
+                <div class="d-flex gap-2">
+                  <!-- STATUS BADGE -->
+                  <span class="badge" [ngClass]="getStatusClass(task.status)">
+                    {{ task.status }}
+                  </span>
+
+                  <!-- PRIORITY BADGE -->
+                  <span class="badge" [ngClass]="getPriorityClass(task.priority)">
+                    {{ task.priority }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="mb-2">
+                <span *ngIf="isOwner(task)" class="badge bg-primary me-1">Owner</span>
+                <span *ngIf="isAssignee(task) && !isOwner(task)" class="badge bg-success me-1">Assigned to you</span>
+                <span *ngIf="task.assignedToFullName && !isAssignee(task)" class="badge bg-info text-dark">
+                  Assigned: {{ task.assignedToFullName }}
+                </span>
+                <span *ngIf="!task.assignedToFullName" class="badge bg-light text-muted">
+                  Unassigned
+                </span>
+              </div>
+
+              <p class="text-muted small mb-2">{{ task.description }}</p>
+              <p class="text-muted small mb-3">Due: {{ task.dueDate }}</p>
+
+              <div class="d-flex justify-content-end gap-2 mt-auto">
+
+                <button class="btn btn-sm btn-outline-primary" type="button"
+                  (click)="openEditModal(task); $event.stopPropagation()">
+                  Edit
+                </button>
+
+                <button class="btn btn-sm btn-outline-danger" type="button" (click)="deleteTask(task.id!, $event)">
+                  Delete
+                </button>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+      </div> <!-- END col-lg-9 -->
+
+      <div class="col-12 col-lg-3 mt-4 mt-lg-0 order-lg-2 order-1">
+
+        <div class="card shadow-sm">
+
+          <div class="card-header d-flex justify-content-between align-items-center">
+
+            <strong>Activity Feed</strong>
+
+            <button class="btn btn-sm btn-outline-primary" (click)="loadActivity()">
+              Refresh
             </button>
 
-            <button class="btn btn-sm btn-outline-danger"
-                    type="button"
-                    (click)="deleteTask(task.id!, $event)">
-              Delete
-            </button>
+          </div>
+
+          <div class="card-body p-2">
+
+            <div *ngIf="activities.length === 0" class="text-muted small text-center py-3">
+              No activity yet
+            </div>
+
+            <div *ngFor="let act of activities" class="activity-item">
+
+              <div class="activity-dot" [ngClass]="act.actionCode">
+              </div>
+
+              <div class="activity-content">
+
+                <div class="activity-message">
+                  {{ act.message }}
+                </div>
+
+                <div class="activity-time">
+                  {{ getRelativeTime(act.createdAt) }}
+                </div>
+
+              </div>
+
+            </div>
 
           </div>
 
         </div>
 
       </div>
-
-    </div>
-
+    </div> <!-- END ROW -->
   </div>
 </div>
 

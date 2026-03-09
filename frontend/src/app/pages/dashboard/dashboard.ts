@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Auth } from '../../services/auth';
-import { TaskService, Task } from '../../services/task';
+import { TaskService, Task, Activity } from '../../services/task';
 import { UserService, AppUser } from '../../services/user';
 
 declare var bootstrap: any;
@@ -53,6 +53,9 @@ export class Dashboard implements OnInit, AfterViewChecked {
   priorityChart: any;
   chartsRendered = false;
 
+  activities: Activity[] = [];
+  loadingActivity = false;
+
   today: string = (() => {
     const d = new Date();
     const yyyy = d.getFullYear();
@@ -88,6 +91,7 @@ export class Dashboard implements OnInit, AfterViewChecked {
     this.extractUserIdFromToken();
     this.loadUsers();
     this.loadTasks();
+    this.loadActivity();
   }
 
   extractUserIdFromToken() {
@@ -385,6 +389,9 @@ export class Dashboard implements OnInit, AfterViewChecked {
           },
         ],
       },
+      options: {
+        maintainAspectRatio: false,
+      },
     });
 
     this.priorityChart = new Chart(priorityCtx, {
@@ -403,7 +410,43 @@ export class Dashboard implements OnInit, AfterViewChecked {
           },
         ],
       },
+      options: {
+        maintainAspectRatio: false,
+      },
     });
+  }
+
+  loadActivity() {
+    this.loadingActivity = true;
+
+    this.taskService.getActivity().subscribe({
+      next: (data) => {
+        this.activities = data;
+        this.loadingActivity = false;
+      },
+      error: (err) => {
+        console.error('Activity load error', err);
+        this.loadingActivity = false;
+      },
+    });
+  }
+
+  getRelativeTime(dateString: string): string {
+    const now = new Date().getTime();
+    const past = new Date(dateString).getTime();
+
+    const diff = Math.floor((now - past) / 1000);
+
+    if (diff < 60) return diff + ' sec ago';
+
+    const minutes = Math.floor(diff / 60);
+    if (minutes < 60) return minutes + ' min ago';
+
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return hours + ' hr ago';
+
+    const days = Math.floor(hours / 24);
+    return days + ' days ago';
   }
 
   logout() {

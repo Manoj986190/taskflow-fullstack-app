@@ -86,3 +86,87 @@
 body {
   background-color: #f5f7fb;
 }
+
+.chart-container {
+  position: relative;
+  height: 260px;
+}
+
+/* Activity Timeline */
+
+.activity-item {
+  position: relative;
+  padding-left: 22px;
+  margin-bottom: 18px;
+}
+
+/* vertical timeline line */
+
+.activity-item::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 0;
+  bottom: -18px;
+  width: 2px;
+  background: #e9ecef;
+}
+
+/* activity dot */
+
+.activity-dot {
+  position: absolute;
+  left: 0;
+  top: 4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+}
+
+.activity-item:hover .activity-dot {
+  transform: scale(1.3);
+}
+
+/* message */
+
+.activity-message {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* timestamp */
+
+.activity-time {
+  font-size: 11px;
+  color: #6c757d;
+}
+
+/* colors */
+
+.TASK_CREATED { background:#198754; }
+.TASK_STATUS_CHANGED { background:#ffc107; }
+.TASK_ASSIGNED { background:#6f42c1; }
+.TASK_PRIORITY_CHANGED { background:#dc3545; }
+.COMMENT_ADDED { background:#0d6efd; }
+.TASK_DELETED { background:#6c757d; }
+
+@media (max-width: 768px) {
+
+  .activity-item {
+    padding-left: 18px;
+  }
+
+  .activity-message {
+    font-size: 12px;
+  }
+
+  .activity-time {
+    font-size: 10px;
+  }
+
+  .card-header strong {
+    font-size: 14px;
+  }
+
+}
