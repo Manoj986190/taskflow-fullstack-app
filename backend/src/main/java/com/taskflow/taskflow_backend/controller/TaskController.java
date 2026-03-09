@@ -2,6 +2,7 @@ package com.taskflow.taskflow_backend.controller;
 
 import com.taskflow.taskflow_backend.dto.TaskRequest;
 import com.taskflow.taskflow_backend.dto.TaskResponse;
+import com.taskflow.taskflow_backend.dto.TaskSummaryResponse;
 import com.taskflow.taskflow_backend.entity.TaskPriority;
 import com.taskflow.taskflow_backend.service.TaskService;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,15 @@ public class TaskController {
 
         return ResponseEntity.ok(
                 taskService.getTasksForUser(email, priority));
+    }
+
+    @GetMapping("/summary")
+    public ResponseEntity<TaskSummaryResponse> getTaskSummary(Authentication authentication) {
+
+            String email = authentication.getName();
+
+            return ResponseEntity.ok(
+                            taskService.getTaskSummary(email));
     }
 
     // ===============================

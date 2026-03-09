@@ -64,10 +64,9 @@ export interface Task {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class TaskService {
-
   private baseUrl = 'http://localhost:8080/api/tasks';
 
   constructor(private http: HttpClient) {}
@@ -90,5 +89,9 @@ export class TaskService {
 
   deleteTask(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
+
+  getSummary() {
+    return this.http.get<any>(`${this.baseUrl}/summary`);
   }
 }

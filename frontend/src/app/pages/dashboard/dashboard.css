@@ -1,3 +1,4 @@
+/* Avatar in navbar */
 .avatar {
   width: 40px;
   height: 40px;
@@ -9,30 +10,79 @@
   justify-content: center;
   font-weight: 600;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
+.avatar:hover {
+  transform: scale(1.05);
+}
+
+
+/* Task Cards */
 .task-card {
-  transition: all 0.2s ease-in-out;
-  border-radius: 12px;
+  transition: all 0.25s ease-in-out;
+  border-radius: 14px;
+  border: none;
 }
 
 .task-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.1);
 }
 
+
+/* Dashboard Stat Cards */
 .stat-card {
   padding: 20px;
-  border-radius: 12px;
+  border-radius: 14px;
   text-align: center;
   box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-  transition: 0.2s;
+  transition: all 0.2s ease;
 }
 
 .stat-card:hover {
   transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.08);
 }
 
+
+/* Analytics / Chart cards */
+.card {
+  border-radius: 14px;
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(0,0,0,0.08);
+}
+
+
+/* Chart size control */
+.card canvas {
+  max-height: 260px;
+}
+
+
+/* Buttons */
+.btn {
+  border-radius: 10px;
+  transition: all 0.15s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+
+/* Modal Styling */
 .modal-content {
   border-radius: 16px;
+  border: none;
+}
+
+
+/* Cleaner dashboard background */
+body {
+  background-color: #f5f7fb;
 }

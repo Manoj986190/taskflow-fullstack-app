@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, AfterViewChecked, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -7,6 +7,7 @@ import { TaskService, Task } from '../../services/task';
 import { UserService, AppUser } from '../../services/user';
 
 declare var bootstrap: any;
+declare var Chart: any;
 
 @Component({
   selector: 'app-dashboard',
@@ -15,7 +16,7 @@ declare var bootstrap: any;
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
-export class Dashboard implements OnInit {
+export class Dashboard implements OnInit, AfterViewChecked {
   private auth = inject(Auth);
   private router = inject(Router);
   private taskService = inject(TaskService);
@@ -42,6 +43,15 @@ export class Dashboard implements OnInit {
   selectedAssignedFilter: string = '';
 
   sortByPriority: boolean = false; // 👈 ADD HERE
+
+  // ANALYTICS
+  summary: any = null;
+
+  showAnalytics = false;
+
+  statusChart: any;
+  priorityChart: any;
+  chartsRendered = false;
 
   today: string = (() => {
     const d = new Date();
@@ -297,6 +307,103 @@ export class Dashboard implements OnInit {
 
   openTask(id: number) {
     this.router.navigate(['/tasks', id]);
+  }
+
+  loadAnalytics() {
+    this.taskService.getSummary().subscribe({
+      next: (data) => {
+        this.summary = data;
+
+        // force Angular to update DOM first
+        this.cdr.detectChanges();
+
+        setTimeout(() => {
+          this.renderCharts();
+        }, 50);
+      },
+      error: (err) => console.error('Summary load error', err),
+    });
+  }
+
+  toggleAnalytics() {
+    this.showAnalytics = !this.showAnalytics;
+
+    if (this.showAnalytics) {
+      if (!this.summary) {
+        this.loadAnalytics();
+      } else {
+        setTimeout(() => {
+          this.renderCharts();
+        }, 50);
+      }
+    } else {
+      if (this.statusChart) {
+        this.statusChart.destroy();
+        this.statusChart = null;
+      }
+
+      if (this.priorityChart) {
+        this.priorityChart.destroy();
+        this.priorityChart = null;
+      }
+    }
+  }
+
+  ngAfterViewChecked() {
+    if (this.showAnalytics && this.summary && !this.chartsRendered) {
+      this.renderCharts();
+      this.chartsRendered = true;
+    }
+  }
+
+  renderCharts() {
+    const statusCanvas = document.getElementById('statusChart') as HTMLCanvasElement;
+    const priorityCanvas = document.getElementById('priorityChart') as HTMLCanvasElement;
+
+    if (!statusCanvas || !priorityCanvas) return;
+
+    const statusCtx = statusCanvas.getContext('2d');
+    const priorityCtx = priorityCanvas.getContext('2d');
+
+    if (!statusCtx || !priorityCtx) return;
+
+    if (this.statusChart) this.statusChart.destroy();
+    if (this.priorityChart) this.priorityChart.destroy();
+
+    this.statusChart = new Chart(statusCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['TODO', 'IN PROGRESS', 'DONE'],
+        datasets: [
+          {
+            data: [
+              this.summary.byStatus.todo,
+              this.summary.byStatus.inProgress,
+              this.summary.byStatus.done,
+            ],
+            backgroundColor: ['#0d6efd', '#ffc107', '#198754'],
+          },
+        ],
+      },
+    });
+
+    this.priorityChart = new Chart(priorityCtx, {
+      type: 'bar',
+      data: {
+        labels: ['HIGH', 'MEDIUM', 'LOW'],
+        datasets: [
+          {
+            label: 'Tasks',
+            data: [
+              this.summary.byPriority.high,
+              this.summary.byPriority.medium,
+              this.summary.byPriority.low,
+            ],
+            backgroundColor: ['#dc3545', '#ffc107', '#198754'],
+          },
+        ],
+      },
+    });
   }
 
   logout() {

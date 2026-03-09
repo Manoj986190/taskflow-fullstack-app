@@ -2,6 +2,7 @@ package com.taskflow.taskflow_backend.service;
 
 import com.taskflow.taskflow_backend.dto.TaskRequest;
 import com.taskflow.taskflow_backend.dto.TaskResponse;
+import com.taskflow.taskflow_backend.dto.TaskSummaryResponse;
 import com.taskflow.taskflow_backend.entity.Task;
 import com.taskflow.taskflow_backend.entity.TaskPriority;
 import com.taskflow.taskflow_backend.entity.TaskStatus;
@@ -15,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -235,5 +237,50 @@ public class TaskService {
                         ? task.getAssignedTo().getFullName()
                         : null
         );
+    }
+
+    public TaskSummaryResponse getTaskSummary(String email) {
+
+            User user = userRepository.findByEmail(email)
+                            .orElseThrow(() -> new RuntimeException("User not found"));
+
+            int totalTasks = taskRepository.countTotalTasks(user);
+
+            int todo = taskRepository.countTodo(user);
+            int inProgress = taskRepository.countInProgress(user);
+            int done = taskRepository.countDone(user);
+
+            int high = taskRepository.countHigh(user);
+            int medium = taskRepository.countMedium(user);
+            int low = taskRepository.countLow(user);
+
+            int overdue = taskRepository.countOverdue(user);
+
+            int tasksThisWeek = taskRepository.countTasksThisWeek(user);
+
+            double completionRate = 0;
+
+            if (totalTasks > 0) {
+                    completionRate = ((double) done / totalTasks) * 100;
+                    completionRate = Math.round(completionRate * 10.0) / 10.0;
+            }
+
+            Map<String, Integer> byStatus = Map.of(
+                            "todo", todo,
+                            "inProgress", inProgress,
+                            "done", done);
+
+            Map<String, Integer> byPriority = Map.of(
+                            "high", high,
+                            "medium", medium,
+                            "low", low);
+
+            return new TaskSummaryResponse(
+                            totalTasks,
+                            byStatus,
+                            byPriority,
+                            completionRate,
+                            overdue,
+                            tasksThisWeek);
     }
 }
