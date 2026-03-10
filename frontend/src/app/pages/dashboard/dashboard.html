@@ -26,8 +26,22 @@
       </div>
     </div>
   </nav>
-
+  
   <div class="container py-5">
+    <!-- DUE DATE ALERT BANNER -->
+    <div *ngIf="showDueBanner && (overdueCount > 0 || dueTodayCount > 0)"
+      class="alert alert-warning d-flex justify-content-between align-items-center mb-4">
+    
+      <div>
+        You have
+        <strong>{{ overdueCount }}</strong> overdue task(s)
+        and
+        <strong>{{ dueTodayCount }}</strong> task(s) due today.
+      </div>
+    
+      <button class="btn-close" (click)="showDueBanner=false"></button>
+    
+    </div>
     <div class="row">
       <div class="col-12 col-lg-9 order-lg-1 order-2">
         <!-- STATS -->
@@ -199,8 +213,11 @@
 
           <div class="col-md-4" *ngFor="let task of filteredTasks">
 
-            <div class="card border-0 shadow-sm task-card h-100 p-3" style="cursor:pointer;"
-              (click)="openTask(task.id!)">
+            <div class="card border-0 shadow-sm task-card h-100 p-3" [ngClass]="{
+                   'border-start border-4 border-danger': (task.dueDate | taskDueDate:task.status) === 'overdue',
+                   'border-start border-4 border-warning': (task.dueDate | taskDueDate:task.status) === 'today',
+                   'border-start border-4 border-success': (task.dueDate | taskDueDate:task.status) === 'done'
+                 }" style="cursor:pointer;" (click)="openTask(task.id!)">
 
               <div class="d-flex justify-content-between align-items-start mb-2">
                 <h6 class="fw-semibold mb-0">
@@ -232,7 +249,17 @@
               </div>
 
               <p class="text-muted small mb-2">{{ task.description }}</p>
-              <p class="text-muted small mb-3">Due: {{ task.dueDate }}</p>
+              <p class="small mb-1">
+                Due: {{ task.dueDate }}
+              </p>
+              
+              <div class="small fw-semibold text-danger" *ngIf="(task.dueDate | taskDueDate:task.status) === 'overdue'">
+                Overdue
+              </div>
+              
+              <div class="small fw-semibold text-warning" *ngIf="(task.dueDate | taskDueDate:task.status) === 'today'">
+                Due Today
+              </div>
 
               <div class="d-flex justify-content-end gap-2 mt-auto">
 

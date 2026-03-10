@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { Auth } from '../../services/auth';
 import { TaskService, Task, Activity } from '../../services/task';
 import { UserService, AppUser } from '../../services/user';
+import { TaskDueDatePipe } from '../../pipes/task-due-date-pipe';
 
 declare var bootstrap: any;
 declare var Chart: any;
@@ -12,7 +13,7 @@ declare var Chart: any;
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, TaskDueDatePipe],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
@@ -55,6 +56,10 @@ export class Dashboard implements OnInit, AfterViewChecked {
 
   activities: Activity[] = [];
   loadingActivity = false;
+
+  overdueCount = 0;
+  dueTodayCount = 0;
+  showDueBanner = true;
 
   today: string = (() => {
     const d = new Date();
@@ -125,11 +130,35 @@ export class Dashboard implements OnInit, AfterViewChecked {
     this.taskService.getTasks().subscribe({
       next: (data) => {
         this.tasks = data ? [...data] : [];
+        this.calculateDueAlerts();
         this.calculateStats();
         this.applyFilters();
         this.cdr.detectChanges();
       },
       error: (err) => console.error('Error loading tasks:', err),
+    });
+  }
+
+  calculateDueAlerts() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    this.overdueCount = 0;
+    this.dueTodayCount = 0;
+
+    this.tasks.forEach((task) => {
+      if (task.status === 'DONE') return;
+
+      const due = new Date(task.dueDate);
+      due.setHours(0, 0, 0, 0);
+
+      if (due < today) {
+        this.overdueCount++;
+      }
+
+      if (due.getTime() === today.getTime()) {
+        this.dueTodayCount++;
+      }
     });
   }
 
