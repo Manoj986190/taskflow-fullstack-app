@@ -30,21 +30,39 @@ public class TaskService {
     // =========================================================
     // GET ALL TASKS (Owner OR Assigned)
     // =========================================================
-    public List<TaskResponse> getTasksForUser(String email,TaskPriority priority) {
+//     public List<TaskResponse> getTasksForUser(String email,TaskPriority priority) {
 
-        User user = getUserByEmail(email);
+//         User user = getUserByEmail(email);
+//         List<Task> tasks;
+//         if (priority != null) {
+//         tasks = taskRepository
+//                 .findTasksByUserOrAssignedAndPriority(user, priority);
+//         } else {
+//         tasks = taskRepository
+//                 .findByUserOrAssignedTo(user, user);
+//         }
+
+//         return tasks.stream()
+//             .map(this::mapToResponse)
+//             .toList();
+//     }
+
+    // =========================================================
+    // GET ALL TASKS (VISIBLE TO ALL USERS)
+    // =========================================================
+    public List<TaskResponse> getTasksForUser(String email, TaskPriority priority) {
+
         List<Task> tasks;
+
         if (priority != null) {
-        tasks = taskRepository
-                .findTasksByUserOrAssignedAndPriority(user, priority);
+                tasks = taskRepository.findByPriority(priority);
         } else {
-        tasks = taskRepository
-                .findByUserOrAssignedTo(user, user);
+                tasks = taskRepository.findAll();
         }
 
         return tasks.stream()
-            .map(this::mapToResponse)
-            .toList();
+                        .map(this::mapToResponse)
+                        .toList();
     }
 
     // =========================================================
@@ -209,28 +227,36 @@ public class TaskService {
     }
 
     // View allowed for Owner OR Assignee
+//     private Task getTaskForView(String email,
+//                                 Long taskId) {
+
+//         User user = getUserByEmail(email);
+
+//         Task task = taskRepository.findById(taskId)
+//                 .orElseThrow(() ->
+//                         new TaskNotFoundException("Task not found"));
+
+//         boolean isOwner =
+//                 task.getUser().getId().equals(user.getId());
+
+//         boolean isAssignee =
+//                 task.getAssignedTo() != null &&
+//                 task.getAssignedTo().getId().equals(user.getId());
+
+//         if (!isOwner && !isAssignee) {
+//             throw new TaskAccessDeniedException(
+//                     "You do not have permission to access this task");
+//         }
+
+//         return task;
+//     }
+
+    // View allowed for any logged-in user
     private Task getTaskForView(String email,
-                                Long taskId) {
+                Long taskId) {
 
-        User user = getUserByEmail(email);
-
-        Task task = taskRepository.findById(taskId)
-                .orElseThrow(() ->
-                        new TaskNotFoundException("Task not found"));
-
-        boolean isOwner =
-                task.getUser().getId().equals(user.getId());
-
-        boolean isAssignee =
-                task.getAssignedTo() != null &&
-                task.getAssignedTo().getId().equals(user.getId());
-
-        if (!isOwner && !isAssignee) {
-            throw new TaskAccessDeniedException(
-                    "You do not have permission to access this task");
-        }
-
-        return task;
+        return taskRepository.findById(taskId)
+                        .orElseThrow(() -> new TaskNotFoundException("Task not found"));
     }
 
     // Only Owner allowed

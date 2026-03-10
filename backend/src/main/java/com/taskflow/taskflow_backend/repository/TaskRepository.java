@@ -17,6 +17,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
     // Tasks created by user OR assigned to user
     List<Task> findByUserOrAssignedTo(User user, User assignedTo);
+    List<Task> findByPriority(TaskPriority priority);
 
     Optional<Task> findByIdAndUser(Long id, User user);
 
