@@ -302,7 +302,8 @@ export class Dashboard implements OnInit, AfterViewChecked {
     this.taskService.deleteTask(id).subscribe({
       next: () => this.loadTasks(),
       error: (err) => {
-        alert('Only task owner can delete this task');
+        //alert('Only task owner can delete this task');
+        alert(err.error?.message || err.message || 'Failed to delete task');
         console.error(err);
       },
     });

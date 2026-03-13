@@ -1,8 +1,7 @@
 <div class="container py-5">
 
   <!-- BACK BUTTON -->
-  <button class="btn btn-outline-secondary mb-4"
-          (click)="goBack()">
+  <button class="btn btn-outline-secondary mb-4" (click)="goBack()">
     ← Back to Dashboard
   </button>
 
@@ -11,30 +10,20 @@
     <div class="spinner-border text-primary"></div>
   </div>
 
-  <!-- TASK ERROR STATE -->
-  <div *ngIf="taskError && !isLoadingTask"
-       class="alert alert-danger rounded-3">
+  <!-- TASK ERROR -->
+  <div *ngIf="taskError && !isLoadingTask" class="alert alert-danger rounded-3">
     ⚠️ Task not found or failed to load.
-    <a (click)="goBack()"
-       class="alert-link ms-2"
-       style="cursor:pointer;">
+    <a (click)="goBack()" class="alert-link ms-2" style="cursor:pointer;">
       ← Go back to Dashboard
     </a>
   </div>
 
   <!-- TASK CARD -->
-  <div *ngIf="task && !isLoadingTask"
-       class="card shadow-sm p-4 mb-4">
+  <div *ngIf="task && !isLoadingTask" class="card shadow-sm p-4 mb-4">
 
-    <h4 class="fw-bold mb-2">
-      {{ task.title }}
-    </h4>
+    <h4 class="fw-bold mb-2">{{ task.title }}</h4>
+    <p class="text-muted">{{ task.description }}</p>
 
-    <p class="text-muted">
-      {{ task.description }}
-    </p>
-
-    <!-- STATUS BADGE -->
     <span class="badge"
           [ngClass]="{
             'bg-primary':           task.status === 'TODO',
@@ -44,54 +33,147 @@
       {{ task.status }}
     </span>
 
-    <!-- ROLE BASED ACTIONS -->
     <div class="mt-3">
-
-      <!-- DELETE TASK -->
       <button *appHasRole="['ADMIN','MANAGER']"
               class="btn btn-danger btn-sm me-2">
         Delete Task
       </button>
-
-      <!-- REASSIGN TASK -->
       <button *appHasRole="['ADMIN','MANAGER']"
               class="btn btn-warning btn-sm">
         Reassign Task
       </button>
-
     </div>
 
-    <p class="text-muted mt-3 mb-0">
-      Due: {{ task.dueDate }}
-    </p>
+    <p class="text-muted mt-3 mb-0">Due: {{ task.dueDate }}</p>
 
   </div>
 
-  <!-- COMMENT SECTION -->
-  <div class="card shadow-sm p-4">
+  <!-- ================= ATTACHMENTS SECTION ================= -->
+  <div *ngIf="task && !isLoadingTask" class="card shadow-sm p-4 mb-4">
 
-    <h5 class="mb-3">
-      Comments ({{ comments.length }})
-    </h5>
+    <h5 class="mb-3">📎 Attachments ({{ attachments.length }}/5)</h5>
 
-    <!-- COMMENTS LOADING -->
-    <div *ngIf="isLoadingComments"
-         class="text-center py-3">
-      <div class="spinner-border text-primary"></div>
+    <!-- LOADING -->
+    <div *ngIf="isLoadingAttachments" class="text-center py-3">
+      <div class="spinner-border spinner-border-sm text-primary"></div>
+    </div>
+
+    <!-- UPLOAD ZONE — hidden for VIEWER (TC-F07) -->
+    <div *ngIf="!isViewer()">
+
+      <!-- MAX 5 REACHED (TC-F08) -->
+      <div *ngIf="attachments.length >= 5"
+           class="alert alert-warning py-2 small mb-3">
+        Maximum 5 files reached. Delete a file to upload a new one.
+      </div>
+
+      <!-- DRAG & DROP ZONE -->
+      <div *ngIf="attachments.length < 5"
+           class="border-2 border-dashed rounded-3 p-4 text-center mb-3"
+           [class.bg-light]="!isDragOver"
+           [class.bg-primary-subtle]="isDragOver"
+           (dragover)="onDragOver($event)"
+           (dragleave)="onDragLeave()"
+           (drop)="onDrop($event)"
+           style="cursor: pointer;"
+           (click)="fileInput.click()">
+
+        <div *ngIf="!uploading">
+          <div class="fs-2 mb-2">📁</div>
+          <p class="mb-1 fw-semibold">Drag & drop a file here</p>
+          <p class="text-muted small mb-2">or click to choose a file</p>
+          <small class="text-muted">
+            Allowed: jpg, png, gif, pdf, doc, xls, txt, zip — Max 5 MB
+          </small>
+        </div>
+
+        <!-- UPLOADING SPINNER -->
+        <div *ngIf="uploading" class="py-2">
+          <div class="spinner-border text-primary mb-2"></div>
+          <p class="text-muted small mb-0">Uploading...</p>
+        </div>
+
+      </div>
+
+      <!-- HIDDEN FILE INPUT -->
+      <input #fileInput
+             type="file"
+             class="d-none"
+             accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip"
+             (change)="onFileSelected($event)">
+
+      <!-- UPLOAD ERROR -->
+      <div *ngIf="uploadError"
+           class="alert alert-danger py-2 small mb-3">
+        ⚠️ {{ uploadError }}
+      </div>
+
+    </div>
+
+    <!-- VIEWER NOTICE (TC-F07) -->
+    <div *ngIf="isViewer()"
+         class="text-muted small fst-italic mb-3">
+      👁️ You have read-only access. Downloading is available but uploading is not.
     </div>
 
     <!-- EMPTY STATE -->
+    <div *ngIf="!isLoadingAttachments && attachments.length === 0"
+         class="text-muted small py-2">
+      No attachments yet.
+    </div>
+
+    <!-- ATTACHMENT LIST -->
+    <div *ngFor="let attachment of attachments" class="border rounded p-3 mb-2">
+    
+      <div class="d-flex flex-column flex-md-row
+                  justify-content-md-between gap-2">
+    
+        <!-- FILE INFO -->
+        <div class="d-flex align-items-center gap-3">
+          <span class="fs-4">{{ getFileIcon(attachment.mimeType) }}</span>
+          <div>
+            <div class="fw-semibold small">{{ attachment.originalName }}</div>
+            <div class="text-muted" style="font-size: 0.75rem;">
+              {{ formatFileSize(attachment.fileSizeBytes) }} ·
+              {{ getRelativeTime(attachment.uploadedAt) }} ·
+              by {{ attachment.uploaderName }}
+            </div>
+          </div>
+        </div>
+    
+        <!-- ACTIONS -->
+        <div class="d-flex gap-2 align-items-center">
+          <button class="btn btn-sm btn-outline-primary" (click)="downloadAttachment(attachment)">
+            ⬇ Download
+          </button>
+          <button *ngIf="canDeleteAttachment(attachment)" class="btn btn-sm btn-outline-danger"
+            (click)="deleteAttachment(attachment.id)">
+            🗑
+          </button>
+        </div>
+    
+      </div>
+    
+    </div>
+
+  </div>
+
+  <!-- ================= COMMENTS SECTION ================= -->
+  <div class="card shadow-sm p-4">
+
+    <h5 class="mb-3">Comments ({{ comments.length }})</h5>
+
+    <div *ngIf="isLoadingComments" class="text-center py-3">
+      <div class="spinner-border text-primary"></div>
+    </div>
+
     <div *ngIf="!isLoadingComments && comments.length === 0"
          class="text-muted small py-2">
       No comments yet. Be the first to comment!
     </div>
 
-    <!-- COMMENT LIST -->
-    <div *ngFor="let comment of comments"
-         class="border-bottom py-3">
-
+    <div *ngFor="let comment of comments" class="border-bottom py-3">
       <div class="d-flex justify-content-between align-items-start">
-
         <div>
           <strong>{{ comment.authorFullName }}</strong>
           <br>
@@ -99,43 +181,29 @@
             {{ getRelativeTime(comment.createdAt) }}
           </small>
         </div>
-
-        <!-- COMMENT DELETE -->
         <button *ngIf="comment.isOwner || isAdminOrManager()"
                 class="btn btn-sm btn-outline-danger"
                 (click)="deleteComment(comment.id)">
           Delete
         </button>
-
       </div>
-
-      <p class="mt-2 mb-0">
-        {{ comment.body }}
-      </p>
-
+      <p class="mt-2 mb-0">{{ comment.body }}</p>
     </div>
 
-    <!-- ADD COMMENT — VIEWER CANNOT SEE THIS -->
-    <div *appHasRole="['ADMIN','MANAGER','MEMBER']"
-         class="mt-4">
-
-      <textarea
-        class="form-control mb-2"
-        [(ngModel)]="newComment"
-        placeholder="Write a comment..."
-        rows="3">
+    <!-- ADD COMMENT — VIEWER CANNOT SEE -->
+    <div *appHasRole="['ADMIN','MANAGER','MEMBER']" class="mt-4">
+      <textarea class="form-control mb-2"
+                [(ngModel)]="newComment"
+                placeholder="Write a comment..."
+                rows="3">
       </textarea>
-
-      <button
-        class="btn btn-primary"
-        [disabled]="!newComment.trim()"
-        (click)="addComment()">
+      <button class="btn btn-primary"
+              [disabled]="!newComment.trim()"
+              (click)="addComment()">
         Add Comment
       </button>
-
     </div>
 
-    <!-- VIEWER READ-ONLY NOTICE -->
     <div *appHasRole="['VIEWER']"
          class="mt-4 text-muted small fst-italic">
       👁️ You have read-only access. Commenting is not available for your role.

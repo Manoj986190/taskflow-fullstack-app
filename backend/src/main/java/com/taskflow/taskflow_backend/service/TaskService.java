@@ -13,11 +13,13 @@ import com.taskflow.taskflow_backend.exception.ResourceNotFoundException;
 import com.taskflow.taskflow_backend.exception.TaskAccessDeniedException;
 import com.taskflow.taskflow_backend.exception.TaskNotFoundException;
 import com.taskflow.taskflow_backend.exception.UserNotFoundException;
+import com.taskflow.taskflow_backend.repository.ActivityLogRepository;
 import com.taskflow.taskflow_backend.repository.TaskRepository;
 import com.taskflow.taskflow_backend.repository.TeamRepository;
 import com.taskflow.taskflow_backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -30,6 +32,7 @@ public class TaskService {
     private final UserRepository userRepository;
     private final ActivityService activityService;
     private final TeamRepository teamRepository;  // ✅ ADD
+    private final ActivityLogRepository activityLogRepository;  // ✅ ADD
 
     // =========================================================
     // GET ALL TASKS (VISIBLE TO ALL USERS)
@@ -166,6 +169,7 @@ public class TaskService {
     // =========================================================
     // DELETE TASK
     // =========================================================
+    @Transactional 
     public void deleteTask(String email, Long taskId) {
 
         User user = getUserByEmail(email);
@@ -178,14 +182,24 @@ public class TaskService {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new TaskNotFoundException("Task not found"));
 
-        if (!task.getUser().getId().equals(user.getId())) {
+        // ✅ ADMIN can delete any task, MANAGER can delete any task
+        // Only restrict for MEMBER
+        boolean isOwner = task.getUser().getId().equals(user.getId());
+        boolean isAdminOrManager = user.getRole().name().equals("ADMIN") ||
+                user.getRole().name().equals("MANAGER");
+
+        if (!isOwner && !isAdminOrManager) { // ✅ FIX
             throw new TaskAccessDeniedException(
                     "Only task owner can delete this task");
         }
 
-        activityService.log(user, task, ActionCode.TASK_DELETED,
+        activityService.log(
+                user,
+                task,
+                ActionCode.TASK_DELETED,
                 user.getFullName() + " deleted task '" + task.getTitle() + "'");
 
+        activityLogRepository.deleteByTask(task);
         taskRepository.delete(task);
     }
 
