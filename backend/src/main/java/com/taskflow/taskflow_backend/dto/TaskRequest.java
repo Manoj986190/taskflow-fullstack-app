@@ -24,4 +24,6 @@ public class TaskRequest {
     private Long assignedToUserId;
 
     private TaskPriority priority;
+
+    private Long teamId;  // ✅ ADD
 }

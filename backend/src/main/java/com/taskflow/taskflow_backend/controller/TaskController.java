@@ -8,6 +8,7 @@ import com.taskflow.taskflow_backend.service.TaskService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -61,6 +62,7 @@ public class TaskController {
     // CREATE task
     // ===============================
     @PostMapping
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_MANAGER','ROLE_MEMBER')")
     public ResponseEntity<TaskResponse> createTask(
             Authentication authentication,
             @RequestBody TaskRequest request) {

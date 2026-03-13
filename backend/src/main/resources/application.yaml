@@ -17,3 +17,7 @@ spring:
 
   main:
     allow-circular-references: true
+
+taskflow:
+  security:
+    first-user-admin: true

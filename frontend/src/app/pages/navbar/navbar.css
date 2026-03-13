@@ -1,0 +1,129 @@
+/* ===== NAVBAR ===== */
+.navbar {
+  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%) !important;
+  box-shadow: 0 2px 12px rgba(13, 110, 253, 0.3) !important;
+  padding: 12px 24px !important;
+}
+
+/* BRAND */
+.navbar-brand {
+  color: white !important;
+  font-size: 1.5rem !important;
+  letter-spacing: 0.5px;
+}
+
+/* NAV LINKS */
+.nav-link-item {
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.85) !important;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.nav-link-item:hover {
+  color: white !important;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.nav-link-item.active {
+  color: white !important;
+  background: rgba(255, 255, 255, 0.2);
+  font-weight: 600;
+}
+
+/* USER NAME */
+.user-name {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+}
+
+/* AVATAR */
+.avatar {
+  width: 40px;
+  height: 40px;
+  background-color: white;
+  color: #0d6efd;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+.avatar:hover {
+  transform: scale(1.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* DROPDOWN */
+.dropdown-menu {
+  border-radius: 10px !important;
+  border: none !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+  padding: 6px !important;
+}
+
+/* LOGOUT BUTTON */
+.logout-btn {
+  width: 100%;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #dc3545, #b02a37);
+  color: white;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.logout-btn:hover {
+  background: linear-gradient(135deg, #b02a37, #8b1a24);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+/* ===== MOBILE ===== */
+@media (max-width: 768px) {
+
+  .navbar {
+    padding: 12px 16px !important;
+  }
+
+  .container-fluid {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+
+  /* Links row — wraps neatly */
+  .d-flex.align-items-center.gap-2 {
+    width: 100%;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 4px !important;
+    padding: 8px 0;
+    border-top: 1px solid rgba(255,255,255,0.2);
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+  }
+
+  .nav-link-item {
+    width: 100%;
+    padding: 10px 14px !important;
+  }
+
+  /* User row */
+  .dropdown.d-flex {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

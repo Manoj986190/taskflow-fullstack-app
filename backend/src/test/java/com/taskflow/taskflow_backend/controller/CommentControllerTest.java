@@ -74,7 +74,7 @@ class CommentControllerTest {
                         .user(testUser)
                         .build());
 
-        token = jwtService.generateToken(testUser.getEmail(),testUser.getId());
+        token = jwtService.generateToken(testUser.getEmail(),testUser.getId(),testUser.getFullName(),testUser.getRole().name());
     }
 
     // =========================
@@ -173,7 +173,7 @@ class CommentControllerTest {
         );
 
         String anotherToken =
-                jwtService.generateToken(anotherUser.getEmail(),anotherUser.getId());
+                jwtService.generateToken(anotherUser.getEmail(),anotherUser.getId(),anotherUser.getFullName(),anotherUser.getRole().name());
 
         mockMvc.perform(delete("/api/comments/" + commentId)
                         .header("Authorization", "Bearer " + anotherToken))

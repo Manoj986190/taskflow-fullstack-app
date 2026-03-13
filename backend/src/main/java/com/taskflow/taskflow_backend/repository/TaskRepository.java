@@ -20,6 +20,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     List<Task> findByPriority(TaskPriority priority);
 
     Optional<Task> findByIdAndUser(Long id, User user);
+    List<Task> findByTeam_Id(Long teamId);  // ✅ ADD
 
     @Query("""
                 SELECT t FROM Task t

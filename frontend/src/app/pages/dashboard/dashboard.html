@@ -1,31 +1,7 @@
 <div class="min-vh-100 bg-light">
 
-  <!-- NAVBAR -->
-  <nav class="navbar bg-white shadow-sm px-4 py-3">
-    <div class="container-fluid d-flex justify-content-between align-items-center">
-      <span class="navbar-brand fw-bold fs-4 text-primary">
-        TaskFlow
-      </span>
-
-      <div class="dropdown d-flex align-items-center gap-3">
-        <span class="fw-medium text-dark">
-          {{ userName }}
-        </span>
-
-        <div class="avatar dropdown-toggle" role="button" data-bs-toggle="dropdown">
-          {{ userInitial }}
-        </div>
-
-        <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-          <li>
-            <button class="dropdown-item text-danger" type="button" (click)="logout()">
-              Logout
-            </button>
-          </li>
-        </ul>
-      </div>
-    </div>
-  </nav>
+  <!-- ✅ SHARED NAVBAR -->
+  <app-navbar></app-navbar>
   
   <div class="container py-5">
     <!-- DUE DATE ALERT BANNER -->
@@ -406,7 +382,18 @@
               <option [ngValue]="null">— Unassigned —</option>
               <option *ngFor="let user of users"
                       [ngValue]="user.id">
-                {{ user.fullName }}
+                {{ user.fullName }} ({{ user.role }})
+              </option>
+            </select>
+          </div>
+
+          <!-- TEAM (optional) -->
+          <div class="mb-3">
+            <label class="form-label">Assign to Team</label>
+            <select class="form-select" name="teamId" [(ngModel)]="newTask.teamId">
+              <option [ngValue]="null">— No Team —</option>
+              <option *ngFor="let team of teams" [ngValue]="team.id">
+                {{ team.name }}
               </option>
             </select>
           </div>
@@ -515,7 +502,18 @@
               <option [ngValue]="null">— Unassigned —</option>
               <option *ngFor="let user of users"
                       [ngValue]="user.id">
-                {{ user.fullName }}
+                {{ user.fullName }} ({{ user.role }})
+              </option>
+            </select>
+          </div>
+
+          <!-- TEAM (optional) -->
+          <div class="mb-3">
+            <label class="form-label">Assign to Team</label>
+            <select class="form-select" name="teamId" [(ngModel)]="editingTask.teamId" [disabled]="!isOwner(editingTask)">
+              <option [ngValue]="null">— No Team —</option>
+              <option *ngFor="let team of teams" [ngValue]="team.id">
+                {{ team.name }}
               </option>
             </select>
           </div>

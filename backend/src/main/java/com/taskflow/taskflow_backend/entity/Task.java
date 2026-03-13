@@ -63,4 +63,8 @@ public class Task {
     @Enumerated(EnumType.STRING)
     @Column
     private TaskPriority priority = TaskPriority.MEDIUM;
+
+    @ManyToOne
+    @JoinColumn(name = "team_id")
+    private Team team;
 }

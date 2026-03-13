@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './guards/auth-guard';
+import { roleGuard } from './guards/role-guard';
 
 export const routes: Routes = [
   // ================= LOGIN =================
@@ -21,6 +22,28 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/dashboard/dashboard').then((m) => m.Dashboard),
   },
 
+  // ================= TEAM DETAIL (PROTECTED) =================
+  {
+    path: 'teams/:id',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/team-detail/team-detail').then((m) => m.TeamDetail),
+  },
+
+  // ================= TEAMS (ALL ROLES) =================
+  {
+    path: 'teams',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/teams/teams').then((m) => m.Teams),
+  },
+
+  // ================= ADMIN (ADMIN ONLY) =================
+  {
+    path: 'admin',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ADMIN'] },
+    loadComponent: () => import('./pages/admin/admin').then((m) => m.Admin),
+  },
+
   // ================= FORGOT PASSWORD =================
   {
     path: 'forgot-password',
@@ -28,7 +51,7 @@ export const routes: Routes = [
       import('./pages/forgot-password/forgot-password').then((m) => m.ForgotPassword),
   },
 
-   // ================= TASK DETAIL (PROTECTED) =================
+  // ================= TASK DETAIL (PROTECTED) =================
   {
     path: 'tasks/:id',
     canActivate: [authGuard],

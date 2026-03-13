@@ -49,8 +49,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (email != null
                 && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            UserDetails userDetails =
-                    userDetailsService.loadUserByUsername(email);
+             UserDetails userDetails;
+
+            // ✅ Catch DisabledException so it doesn't cause 401
+            try {
+                userDetails = userDetailsService.loadUserByUsername(email);
+            } catch (Exception e) {
+                filterChain.doFilter(request, response);
+                return;
+            }
 
             if (jwtService.isTokenValid(token, userDetails)) {
 

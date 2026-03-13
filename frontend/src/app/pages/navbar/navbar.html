@@ -1,0 +1,58 @@
+<nav class="navbar px-4 py-3">
+  <div class="container-fluid d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+    <!-- BRAND -->
+    <span class="navbar-brand fw-bold fs-4">
+      ⚡ TaskFlow
+    </span>
+
+    <!-- NAV LINKS -->
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+
+      <a routerLink="/dashboard"
+         routerLinkActive="active"
+         class="nav-link-item">
+        Dashboard
+      </a>
+
+      <a 
+         routerLink="/teams"
+         routerLinkActive="active"
+         class="nav-link-item">
+        Teams
+      </a>
+
+      <a *ngIf="userRole === 'ADMIN'"
+         routerLink="/admin"
+         routerLinkActive="active"
+         class="nav-link-item">
+        Admin Panel
+      </a>
+
+    </div>
+
+    <!-- USER DROPDOWN -->
+    <div class="dropdown d-flex align-items-center gap-3">
+
+      <span class="user-name">{{ userName }}</span>
+
+      <div class="avatar dropdown-toggle"
+           role="button"
+           data-bs-toggle="dropdown">
+        {{ userInitial }}
+      </div>
+
+      <ul class="dropdown-menu dropdown-menu-end">
+        <li>
+          <button class="logout-btn"
+                  type="button"
+                  (click)="logout()">
+             Logout
+          </button>
+        </li>
+      </ul>
+
+    </div>
+
+  </div>
+</nav>

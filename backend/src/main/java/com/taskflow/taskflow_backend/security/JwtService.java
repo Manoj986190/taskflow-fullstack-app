@@ -25,11 +25,13 @@ public class JwtService {
     // TOKEN GENERATION (UPDATED)
     // ===============================
 
-    public String generateToken(String email, Long userId) {
+    public String generateToken(String email, Long userId, String fullName, String role) {
 
         return Jwts.builder()
                 .setSubject(email)
                 .claim("userId", userId)   // ✅ ADD THIS
+                .claim("fullName", fullName)   // ✅ ADD
+                .claim("role", role)           // ✅ ADD
                 .setIssuedAt(new Date())
                 .setExpiration(
                         new Date(System.currentTimeMillis() + EXPIRATION_TIME)
@@ -48,6 +50,14 @@ public class JwtService {
 
     public Long extractUserId(String token) {
         return extractAllClaims(token).get("userId", Long.class);
+    }
+
+    public String extractRole(String token) {
+        return extractAllClaims(token).get("role", String.class);
+    }
+
+    public String extractFullName(String token) {
+        return extractAllClaims(token).get("fullName", String.class);
     }
 
     private Claims extractAllClaims(String token) {

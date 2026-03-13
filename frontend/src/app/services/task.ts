@@ -61,6 +61,8 @@ export interface Task {
   userId?: number;                // OWNER ID
   assignedToUserId?: number | null;
   assignedToFullName?: string | null;
+  teamId?: number | null;    // ✅ ADD
+  teamName?: string;         // ✅ ADD
 }
 
 export interface Activity {

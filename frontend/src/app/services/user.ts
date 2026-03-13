@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 export interface AppUser {
   id: number;
   fullName: string;
+  role: string;  // ✅ ADD
 }
 
 @Injectable({

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -23,7 +23,7 @@ export class Login {
   // 👁 Password toggle
   showPassword: boolean = false;
 
-  constructor(private auth: Auth, private router: Router) {}
+  constructor(private auth: Auth, private router: Router, private cdr: ChangeDetectorRef) {}
 
   togglePassword() {
     this.showPassword = !this.showPassword;
@@ -34,16 +34,31 @@ export class Login {
 
     this.auth.login(this.loginData).subscribe({
       next: (response) => {
-
         // Save token
         this.auth.saveToken(response.token);
 
-        // Navigate to dashboard
-        this.router.navigate(['/dashboard']);
+        // ✅ Read role from JWT
+        const payload = JSON.parse(atob(response.token.split('.')[1]));
+        const role = payload.role;
+
+        // ✅ Redirect based on role
+        if (role === 'ADMIN') {
+          this.router.navigate(['/admin']);
+        } else if (role === 'MANAGER') {
+          this.router.navigate(['/teams']);
+        } else {
+          this.router.navigate(['/dashboard']);
+        }
       },
       error: (err) => {
+        // ✅ Handle all possible error message locations
         this.errorMessage =
-          err.error?.message || 'Invalid email or password';
+          err.error?.message ||
+          err.error?.error ||
+          err.message ||
+          'Invalid email or password';
+
+        this.cdr.detectChanges();  // ✅ Force UI update
       }
     });
   }

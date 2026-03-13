@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -48,6 +49,28 @@ public class GlobalExceptionHandler {
                         "message", ex.getMessage()));
     }
 
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<Map<String, Object>> handleResponseStatus(
+            ResponseStatusException ex) {
+        return ResponseEntity
+            .status(ex.getStatusCode())
+            .body(Map.of(
+                "status", ex.getStatusCode().value(),
+                "message", ex.getReason()
+            ));
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalState(
+            IllegalStateException ex) {
+        return ResponseEntity
+            .status(HttpStatus.CONFLICT)
+            .body(Map.of(
+                "status", 409,
+                "message", ex.getMessage()
+            ));
+    }
+
     @ExceptionHandler(TaskNotFoundException.class)
     public ResponseEntity<?> handleTaskNotFound(TaskNotFoundException ex) {
         return ResponseEntity.status(404).body(
@@ -57,9 +80,14 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(TaskAccessDeniedException.class)
-    public ResponseEntity<?> handleAccessDenied(TaskAccessDeniedException ex) {
-        return ResponseEntity.status(403).body(
-                Map.of("status", 403, "message", ex.getMessage()));
+    public ResponseEntity<Map<String, Object>> handleAccessDenied(
+            TaskAccessDeniedException ex) {
+        return ResponseEntity
+            .status(HttpStatus.FORBIDDEN)
+            .body(Map.of(
+                "status", 403,
+                "message", ex.getMessage()
+            ));
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)

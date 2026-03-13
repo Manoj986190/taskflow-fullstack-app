@@ -5,19 +5,23 @@ import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs/operators';
 import { TaskService, Task } from '../../services/task';
 import { CommentService, Comment } from '../../services/comment';
+import { HasRoleDirective } from '../../directives/has-role';
+import { Auth } from '../../services/auth';
 
 @Component({
   selector: 'app-task-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, HasRoleDirective],
   templateUrl: './task-detail.html',
   styleUrl: './task-detail.css',
 })
 export class TaskDetail implements OnInit {
+
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private taskService = inject(TaskService);
   private commentService = inject(CommentService);
+  private auth = inject(Auth);
   private cdr = inject(ChangeDetectorRef);
 
   taskId!: number;
@@ -32,6 +36,7 @@ export class TaskDetail implements OnInit {
 
   // ================= INIT =================
   ngOnInit() {
+
     const idParam = this.route.snapshot.paramMap.get('id');
 
     if (!idParam) {
@@ -47,6 +52,7 @@ export class TaskDetail implements OnInit {
 
   // ================= LOAD TASK =================
   loadTask() {
+
     this.isLoadingTask = true;
     this.taskError = false;
 
@@ -71,6 +77,7 @@ export class TaskDetail implements OnInit {
 
   // ================= LOAD COMMENTS =================
   loadComments() {
+
     this.isLoadingComments = true;
 
     this.commentService
@@ -94,48 +101,69 @@ export class TaskDetail implements OnInit {
 
   // ================= ADD COMMENT =================
   addComment() {
+
     if (!this.newComment.trim()) return;
 
-    this.commentService.addComment(this.taskId, this.newComment).subscribe({
-      next: (comment) => {
-        this.comments = [...this.comments, comment];
-        this.newComment = '';
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('Add comment failed', err);
-      },
-    });
+    this.commentService
+      .addComment(this.taskId, this.newComment)
+      .subscribe({
+        next: (comment) => {
+          this.comments = [...this.comments, comment];
+          this.newComment = '';
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Add comment failed', err);
+        },
+      });
   }
 
   // ================= DELETE COMMENT =================
   deleteComment(commentId: number) {
+
     if (!confirm('Delete this comment?')) return;
 
-    this.commentService.deleteComment(commentId).subscribe({
-      next: () => {
-        this.comments = this.comments.filter((c) => c.id !== commentId);
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('Delete failed', err);
-      },
-    });
+    this.commentService
+      .deleteComment(commentId)
+      .subscribe({
+        next: () => {
+          this.comments = this.comments.filter(c => c.id !== commentId);
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Delete failed', err);
+        },
+      });
   }
 
-  // =================update===================
+  // ================= UPDATE STATUS =================
   updateStatus() {
+
     if (!this.task) return;
 
-    this.taskService.updateTask(this.task.id!, this.task).subscribe({
-      next: (updated) => {
-        this.task = updated;
-      },
-      error: (err) => {
-        alert('You are not allowed to update this task');
-        console.error(err);
-      },
-    });
+    this.taskService
+      .updateTask(this.task.id!, this.task)
+      .subscribe({
+        next: (updated) => {
+          this.task = updated;
+        },
+        error: (err) => {
+          alert('You are not allowed to update this task');
+          console.error(err);
+        },
+      });
+  }
+
+  // ================= ROLE CHECK =================
+  isAdminOrManager(): boolean {
+    try {
+      const token = this.auth.getToken();
+      if (!token) return false;
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.role === 'ADMIN' || payload.role === 'MANAGER';
+    } catch {
+      return false;
+    }
   }
 
   // ================= BACK BUTTON =================
@@ -145,11 +173,13 @@ export class TaskDetail implements OnInit {
 
   // ================= RELATIVE TIME =================
   getRelativeTime(dateString: string): string {
+
     const diff = (new Date().getTime() - new Date(dateString).getTime()) / 1000;
 
     if (diff < 60) return 'Just now';
     if (diff < 3600) return Math.floor(diff / 60) + ' min ago';
     if (diff < 86400) return Math.floor(diff / 3600) + ' hrs ago';
+
     return Math.floor(diff / 86400) + ' days ago';
   }
 }

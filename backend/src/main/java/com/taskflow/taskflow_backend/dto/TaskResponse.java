@@ -19,5 +19,8 @@ public record TaskResponse(
 
         // 🔥 NEW F-EXT-02 FIELDS
         Long assignedToUserId,
-        String assignedToFullName
+        String assignedToFullName,
+
+        Long teamId,      // ✅ ADD
+        String teamName  // ✅ ADD
 ) {}

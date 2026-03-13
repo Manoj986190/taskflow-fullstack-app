@@ -37,12 +37,29 @@
     <!-- STATUS BADGE -->
     <span class="badge"
           [ngClass]="{
-            'bg-primary':             task.status === 'TODO',
-            'bg-warning text-dark':   task.status === 'IN_PROGRESS',
-            'bg-success':             task.status === 'DONE'
+            'bg-primary':           task.status === 'TODO',
+            'bg-warning text-dark': task.status === 'IN_PROGRESS',
+            'bg-success':           task.status === 'DONE'
           }">
       {{ task.status }}
     </span>
+
+    <!-- ROLE BASED ACTIONS -->
+    <div class="mt-3">
+
+      <!-- DELETE TASK -->
+      <button *appHasRole="['ADMIN','MANAGER']"
+              class="btn btn-danger btn-sm me-2">
+        Delete Task
+      </button>
+
+      <!-- REASSIGN TASK -->
+      <button *appHasRole="['ADMIN','MANAGER']"
+              class="btn btn-warning btn-sm">
+        Reassign Task
+      </button>
+
+    </div>
 
     <p class="text-muted mt-3 mb-0">
       Due: {{ task.dueDate }}
@@ -83,7 +100,8 @@
           </small>
         </div>
 
-        <button *ngIf="comment.isOwner"
+        <!-- COMMENT DELETE -->
+        <button *ngIf="comment.isOwner || isAdminOrManager()"
                 class="btn btn-sm btn-outline-danger"
                 (click)="deleteComment(comment.id)">
           Delete
@@ -97,8 +115,9 @@
 
     </div>
 
-    <!-- ADD COMMENT -->
-    <div class="mt-4">
+    <!-- ADD COMMENT — VIEWER CANNOT SEE THIS -->
+    <div *appHasRole="['ADMIN','MANAGER','MEMBER']"
+         class="mt-4">
 
       <textarea
         class="form-control mb-2"
@@ -114,6 +133,12 @@
         Add Comment
       </button>
 
+    </div>
+
+    <!-- VIEWER READ-ONLY NOTICE -->
+    <div *appHasRole="['VIEWER']"
+         class="mt-4 text-muted small fst-italic">
+      👁️ You have read-only access. Commenting is not available for your role.
     </div>
 
   </div>

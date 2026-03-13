@@ -24,7 +24,8 @@ public class UserController {
                 .stream()
                 .map(user -> new UserSummaryDTO(
                         user.getId(),
-                        user.getFullName()
+                        user.getFullName(),
+                        user.getRole().name()  // ✅ ADD THIS
                 ))
                 .toList();
     }

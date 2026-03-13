@@ -1,0 +1,158 @@
+<app-navbar></app-navbar>
+
+<div class="container mt-4 px-3">
+
+  <h2 class="mb-1 fw-bold">Admin Panel — User Management</h2>
+  <p class="text-muted small mb-4">
+    Full system control. Only Admins can access this page.
+  </p>
+
+  <!-- STATS STRIP -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="card p-3 text-center shadow-sm">
+        <small class="text-muted">Total Users</small>
+        <h4 class="fw-bold">{{ users.length }}</h4>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card p-3 text-center shadow-sm">
+        <small class="text-muted">Admins</small>
+        <h4 class="fw-bold text-danger">{{ getCountByRole('ADMIN') }}</h4>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card p-3 text-center shadow-sm">
+        <small class="text-muted">Managers</small>
+        <h4 class="fw-bold">{{ getCountByRole('MANAGER') }}</h4>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card p-3 text-center shadow-sm">
+        <small class="text-muted">Deactivated</small>
+        <h4 class="fw-bold text-secondary">{{ getInactiveCount() }}</h4>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div *ngIf="loading" class="text-center py-4">
+    <div class="spinner-border text-primary"></div>
+  </div>
+
+  <!-- EMPTY STATE -->
+  <div *ngIf="!loading && users.length === 0"
+       class="text-center text-muted py-4">
+    No users found.
+  </div>
+
+  <!-- DESKTOP TABLE — hidden on mobile -->
+  <div class="d-none d-md-block">
+    <table *ngIf="!loading && users.length > 0"
+           class="table table-bordered table-striped align-middle">
+      <thead class="table-dark">
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of users">
+          <td>{{ user.id }}</td>
+          <td>{{ user.fullName }}</td>
+          <td>{{ user.email }}</td>
+          <td>
+            <select class="form-select form-select-sm"
+                    [value]="user.role"
+                    (change)="changeRole(user, $any($event.target).value)">
+              <option value="ADMIN">ADMIN</option>
+              <option value="MANAGER">MANAGER</option>
+              <option value="MEMBER">MEMBER</option>
+              <option value="VIEWER">VIEWER</option>
+            </select>
+          </td>
+          <td>
+            <span class="badge"
+                  [ngClass]="{
+                    'bg-success': user.isActive,
+                    'bg-danger':  !user.isActive
+                  }">
+              {{ user.isActive ? 'Active' : 'Inactive' }}
+            </span>
+          </td>
+          <td>
+            <button class="btn btn-sm"
+                    [ngClass]="{
+                      'btn-danger':  user.isActive,
+                      'btn-success': !user.isActive
+                    }"
+                    (click)="toggleStatus(user)">
+              {{ user.isActive ? 'Deactivate' : 'Activate' }}
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- MOBILE CARDS — hidden on desktop -->
+  <div class="d-md-none">
+    <div *ngFor="let user of users"
+         class="card shadow-sm mb-3 p-3">
+
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <div>
+          <div class="fw-bold">{{ user.fullName }}</div>
+          <div class="text-muted small">{{ user.email }}</div>
+        </div>
+        <span class="badge"
+              [ngClass]="{
+                'bg-success': user.isActive,
+                'bg-danger':  !user.isActive
+              }">
+          {{ user.isActive ? 'Active' : 'Inactive' }}
+        </span>
+      </div>
+
+      <div class="mb-2">
+        <label class="form-label small fw-semibold mb-1">Role</label>
+        <select class="form-select form-select-sm"
+                [value]="user.role"
+                (change)="changeRole(user, $any($event.target).value)">
+          <option value="ADMIN">ADMIN</option>
+          <option value="MANAGER">MANAGER</option>
+          <option value="MEMBER">MEMBER</option>
+          <option value="VIEWER">VIEWER</option>
+        </select>
+      </div>
+
+      <button class="btn btn-sm w-100"
+              [ngClass]="{
+                'btn-danger':  user.isActive,
+                'btn-success': !user.isActive
+              }"
+              (click)="toggleStatus(user)">
+        {{ user.isActive ? 'Deactivate' : 'Activate' }}
+      </button>
+
+    </div>
+  </div>
+
+  <!-- RBAC QUICK REFERENCE -->
+  <div class="alert alert-secondary mt-4 small">
+    <strong>Role Permissions:</strong>
+    Admin: full control &nbsp;|&nbsp;
+    Manager: create teams, assign tasks &nbsp;|&nbsp;
+    Member: create & edit own tasks &nbsp;|&nbsp;
+    Viewer: read-only
+    <br>
+    <span class="text-muted">
+      Role changes take effect on the user's next login (new JWT issued).
+    </span>
+  </div>
+
+</div>
