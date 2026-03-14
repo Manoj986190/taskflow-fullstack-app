@@ -73,4 +73,9 @@ public class Task {
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<TaskAttachment> attachments = new ArrayList<>();
+
+    // ✅ ADD — cascade delete subtasks when task is deleted (TC-S06)
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Subtask> subtasks = new ArrayList<>();
 }

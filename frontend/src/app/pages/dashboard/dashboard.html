@@ -228,6 +228,32 @@
               <p class="small mb-1">
                 Due: {{ task.dueDate }}
               </p>
+
+              <!-- SUBTASK PROGRESS BAR (TC-S07) -->
+              <div *ngIf="getSubtaskSummary(task.id!).total > 0" class="mt-2 mb-1">
+              
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <small class="text-muted">
+                    <ng-container *ngIf="getProgressPercent(task.id!) < 100">
+                      {{ getSubtaskSummary(task.id!).completed }} /
+                      {{ getSubtaskSummary(task.id!).total }} subtasks done
+                    </ng-container>
+                    <ng-container *ngIf="getProgressPercent(task.id!) === 100">
+                      <span class="text-success fw-semibold">✅ All done!</span>
+                    </ng-container>
+                  </small>
+                  <small class="text-muted">
+                    {{ getProgressPercent(task.id!) }}%
+                  </small>
+                </div>
+              
+                <div class="progress" style="height: 6px;">
+                  <div class="progress-bar" [ngClass]="getProgressPercent(task.id!) === 100
+                                  ? 'bg-success' : 'bg-primary'" [style.width.%]="getProgressPercent(task.id!)">
+                  </div>
+                </div>
+              
+              </div>
               
               <div class="small fw-semibold text-danger" *ngIf="(task.dueDate | taskDueDate:task.status) === 'overdue'">
                 Overdue

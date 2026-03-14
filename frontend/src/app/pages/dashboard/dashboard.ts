@@ -8,6 +8,7 @@ import { UserService, AppUser } from '../../services/user';
 import { TeamService } from '../../services/team';
 import { TaskDueDatePipe } from '../../pipes/task-due-date-pipe';
 import { Navbar } from '../navbar/navbar';
+import { SubtaskService } from '../../services/subtask';
 
 declare var bootstrap: any;
 declare var Chart: any;
@@ -24,8 +25,9 @@ export class Dashboard implements OnInit, AfterViewChecked {
   private router = inject(Router);
   private taskService = inject(TaskService);
   private userService = inject(UserService);
-  private teamService = inject(TeamService);  // ✅ ADD
+  private teamService = inject(TeamService); // ✅ ADD
   private cdr = inject(ChangeDetectorRef);
+  private subtaskService = inject(SubtaskService);
 
   userEmail: string | null = '';
   currentUserId: number = 0;
@@ -33,7 +35,7 @@ export class Dashboard implements OnInit, AfterViewChecked {
   tasks: Task[] = [];
   filteredTasks: Task[] = [];
   users: AppUser[] = [];
-  teams: any[] = [];  // ✅ ADD
+  teams: any[] = []; // ✅ ADD
 
   totalTasks = 0;
   todoCount = 0;
@@ -60,6 +62,8 @@ export class Dashboard implements OnInit, AfterViewChecked {
   dueTodayCount = 0;
   showDueBanner = true;
 
+  subtaskSummaries: Map<number, { total: number; completed: number }> = new Map();
+
   today: string = (() => {
     const d = new Date();
     const yyyy = d.getFullYear();
@@ -75,7 +79,7 @@ export class Dashboard implements OnInit, AfterViewChecked {
     status: 'TODO',
     priority: 'MEDIUM',
     assignedToUserId: null,
-    teamId: null,  // ✅ ADD
+    teamId: null, // ✅ ADD
   };
 
   editingTask: Task | null = null;
@@ -91,7 +95,7 @@ export class Dashboard implements OnInit, AfterViewChecked {
     this.loadUsers();
     this.loadTasks();
     this.loadActivity();
-    this.loadTeams();  // ✅ ADD
+    this.loadTeams(); // ✅ ADD
   }
 
   extractUserIdFromToken() {
@@ -136,6 +140,7 @@ export class Dashboard implements OnInit, AfterViewChecked {
         this.calculateDueAlerts();
         this.calculateStats();
         this.applyFilters();
+        this.loadSubtaskSummaries();
         this.cdr.detectChanges();
       },
       error: (err) => console.error('Error loading tasks:', err),
@@ -176,13 +181,11 @@ export class Dashboard implements OnInit, AfterViewChecked {
         task.title.toLowerCase().includes(query) ||
         task.description.toLowerCase().includes(query);
 
-      const matchesStatus =
-        !this.selectedStatus || task.status === this.selectedStatus;
+      const matchesStatus = !this.selectedStatus || task.status === this.selectedStatus;
 
       const matchesAssigned =
         !this.selectedAssignedFilter ||
-        (this.selectedAssignedFilter === 'me' &&
-          task.assignedToUserId === this.currentUserId);
+        (this.selectedAssignedFilter === 'me' && task.assignedToUserId === this.currentUserId);
 
       return matchesSearch && matchesStatus && matchesAssigned;
     });
@@ -200,8 +203,36 @@ export class Dashboard implements OnInit, AfterViewChecked {
     }
   }
 
-  onSearchChange() { this.applyFilters(); }
-  onStatusChange() { this.applyFilters(); }
+  // ================= SUBTASK SUMMARIES =================
+  loadSubtaskSummaries() {
+    this.tasks.forEach((task) => {
+      if (!task.id) return;
+      this.subtaskService.getSummary(task.id).subscribe({
+        next: (summary) => {
+          this.subtaskSummaries.set(task.id!, summary);
+          this.cdr.detectChanges();
+        },
+        error: () => {},
+      });
+    });
+  }
+
+  getSubtaskSummary(taskId: number) {
+    return this.subtaskSummaries.get(taskId) || { total: 0, completed: 0 };
+  }
+
+  getProgressPercent(taskId: number): number {
+    const s = this.getSubtaskSummary(taskId);
+    if (s.total === 0) return 0;
+    return Math.round((s.completed / s.total) * 100);
+  }
+
+  onSearchChange() {
+    this.applyFilters();
+  }
+  onStatusChange() {
+    this.applyFilters();
+  }
 
   togglePrioritySort() {
     this.sortByPriority = !this.sortByPriority;
@@ -210,10 +241,14 @@ export class Dashboard implements OnInit, AfterViewChecked {
 
   getPriorityClass(priority: string | undefined) {
     switch (priority) {
-      case 'HIGH':   return 'bg-danger';
-      case 'MEDIUM': return 'bg-warning text-dark';
-      case 'LOW':    return 'bg-success';
-      default:       return 'bg-secondary';
+      case 'HIGH':
+        return 'bg-danger';
+      case 'MEDIUM':
+        return 'bg-warning text-dark';
+      case 'LOW':
+        return 'bg-success';
+      default:
+        return 'bg-secondary';
     }
   }
 
@@ -222,9 +257,13 @@ export class Dashboard implements OnInit, AfterViewChecked {
     if (!element) return;
 
     const modal = new (window as any).bootstrap.Modal(element);
-    element.addEventListener('hidden.bs.modal', () => {
-      this.resetCreateForm();
-    }, { once: true });
+    element.addEventListener(
+      'hidden.bs.modal',
+      () => {
+        this.resetCreateForm();
+      },
+      { once: true },
+    );
     modal.show();
   }
 
@@ -251,7 +290,7 @@ export class Dashboard implements OnInit, AfterViewChecked {
       status: 'TODO',
       priority: 'MEDIUM',
       assignedToUserId: null,
-      teamId: null,  // ✅ ADD
+      teamId: null, // ✅ ADD
     };
   }
 
@@ -270,7 +309,7 @@ export class Dashboard implements OnInit, AfterViewChecked {
           status: 'TODO',
           priority: 'MEDIUM',
           assignedToUserId: null,
-          teamId: null,  // ✅ ADD
+          teamId: null, // ✅ ADD
         };
         this.closeModal('createTaskModal');
         this.loadTasks();
@@ -289,7 +328,9 @@ export class Dashboard implements OnInit, AfterViewChecked {
       next: () => {
         this.closeModal('editTaskModal');
         this.editingTask = null;
-        setTimeout(() => { this.loadTasks(); }, 200);
+        setTimeout(() => {
+          this.loadTasks();
+        }, 200);
       },
       error: (err) => console.error(err),
     });
@@ -302,8 +343,8 @@ export class Dashboard implements OnInit, AfterViewChecked {
     this.taskService.deleteTask(id).subscribe({
       next: () => this.loadTasks(),
       error: (err) => {
-        //alert('Only task owner can delete this task');
-        alert(err.error?.message || err.message || 'Failed to delete task');
+        alert('Only task owner can delete this task');
+        //alert(err.error?.message || err.message || 'Failed to delete task');
         console.error(err);
       },
     });
@@ -318,7 +359,9 @@ export class Dashboard implements OnInit, AfterViewChecked {
       next: (data) => {
         this.summary = data;
         this.cdr.detectChanges();
-        setTimeout(() => { this.renderCharts(); }, 50);
+        setTimeout(() => {
+          this.renderCharts();
+        }, 50);
       },
       error: (err) => console.error('Summary load error', err),
     });
@@ -331,11 +374,19 @@ export class Dashboard implements OnInit, AfterViewChecked {
       if (!this.summary) {
         this.loadAnalytics();
       } else {
-        setTimeout(() => { this.renderCharts(); }, 50);
+        setTimeout(() => {
+          this.renderCharts();
+        }, 50);
       }
     } else {
-      if (this.statusChart) { this.statusChart.destroy(); this.statusChart = null; }
-      if (this.priorityChart) { this.priorityChart.destroy(); this.priorityChart = null; }
+      if (this.statusChart) {
+        this.statusChart.destroy();
+        this.statusChart = null;
+      }
+      if (this.priorityChart) {
+        this.priorityChart.destroy();
+        this.priorityChart = null;
+      }
     }
   }
 
@@ -362,14 +413,16 @@ export class Dashboard implements OnInit, AfterViewChecked {
       type: 'doughnut',
       data: {
         labels: ['TODO', 'IN PROGRESS', 'DONE'],
-        datasets: [{
-          data: [
-            this.summary.byStatus.todo,
-            this.summary.byStatus.inProgress,
-            this.summary.byStatus.done,
-          ],
-          backgroundColor: ['#0d6efd', '#ffc107', '#198754'],
-        }],
+        datasets: [
+          {
+            data: [
+              this.summary.byStatus.todo,
+              this.summary.byStatus.inProgress,
+              this.summary.byStatus.done,
+            ],
+            backgroundColor: ['#0d6efd', '#ffc107', '#198754'],
+          },
+        ],
       },
       options: { maintainAspectRatio: false },
     });
@@ -378,15 +431,17 @@ export class Dashboard implements OnInit, AfterViewChecked {
       type: 'bar',
       data: {
         labels: ['HIGH', 'MEDIUM', 'LOW'],
-        datasets: [{
-          label: 'Tasks',
-          data: [
-            this.summary.byPriority.high,
-            this.summary.byPriority.medium,
-            this.summary.byPriority.low,
-          ],
-          backgroundColor: ['#dc3545', '#ffc107', '#198754'],
-        }],
+        datasets: [
+          {
+            label: 'Tasks',
+            data: [
+              this.summary.byPriority.high,
+              this.summary.byPriority.medium,
+              this.summary.byPriority.low,
+            ],
+            backgroundColor: ['#dc3545', '#ffc107', '#198754'],
+          },
+        ],
       },
       options: { maintainAspectRatio: false },
     });
@@ -422,10 +477,14 @@ export class Dashboard implements OnInit, AfterViewChecked {
 
   getStatusClass(status: string) {
     switch (status) {
-      case 'TODO':        return 'bg-secondary';
-      case 'IN_PROGRESS': return 'bg-warning text-dark';
-      case 'DONE':        return 'bg-success';
-      default:            return 'bg-light';
+      case 'TODO':
+        return 'bg-secondary';
+      case 'IN_PROGRESS':
+        return 'bg-warning text-dark';
+      case 'DONE':
+        return 'bg-success';
+      default:
+        return 'bg-light';
     }
   }
 }

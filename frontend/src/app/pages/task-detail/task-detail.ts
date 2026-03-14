@@ -6,6 +6,7 @@ import { finalize } from 'rxjs/operators';
 import { TaskService, Task } from '../../services/task';
 import { CommentService, Comment } from '../../services/comment';
 import { AttachmentService, Attachment } from '../../services/attachment';
+import { SubtaskService, Subtask } from '../../services/subtask';
 import { HasRoleDirective } from '../../directives/has-role';
 import { Auth } from '../../services/auth';
 
@@ -23,6 +24,7 @@ export class TaskDetail implements OnInit {
   private taskService = inject(TaskService);
   private commentService = inject(CommentService);
   private attachmentService = inject(AttachmentService);
+  private subtaskService = inject(SubtaskService);
   private auth = inject(Auth);
   private cdr = inject(ChangeDetectorRef);
 
@@ -43,6 +45,13 @@ export class TaskDetail implements OnInit {
   uploading = false;
   isDragOver = false;
 
+  // ================= SUBTASKS =================
+  subtasks: Subtask[] = [];
+  isLoadingSubtasks = false;
+  newSubtaskTitle: string = '';
+  addingSubtask = false;
+  togglingSubtaskId: number | null = null;
+
   currentUserId: number = 0;
   currentUserRole: string = '';
 
@@ -59,6 +68,7 @@ export class TaskDetail implements OnInit {
     this.loadTask();
     this.loadComments();
     this.loadAttachments();
+    this.loadSubtasks();
   }
 
   // ================= TOKEN INFO =================
@@ -189,17 +199,13 @@ export class TaskDetail implements OnInit {
     if (file) this.handleFile(file);
   }
 
-  // ================= HANDLE FILE (TC-F02, TC-F03) =================
+  // ================= HANDLE FILE =================
   handleFile(file: File) {
     this.uploadError = '';
-
-    // Client-side size check — TC-F02
     if (file.size > 5 * 1024 * 1024) {
       this.uploadError = 'File exceeds 5 MB limit.';
       return;
     }
-
-    // Client-side type check — TC-F03
     const allowed = [
       'image/jpeg', 'image/png', 'image/gif',
       'application/pdf', 'application/msword',
@@ -208,12 +214,10 @@ export class TaskDetail implements OnInit {
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       'text/plain', 'application/zip'
     ];
-
     if (!allowed.includes(file.type)) {
       this.uploadError = 'File type not allowed.';
       return;
     }
-
     this.uploadFile(file);
   }
 
@@ -221,7 +225,6 @@ export class TaskDetail implements OnInit {
   uploadFile(file: File) {
     this.uploading = true;
     this.uploadError = '';
-
     this.attachmentService.upload(this.taskId, file)
       .pipe(finalize(() => {
         this.uploading = false;
@@ -237,7 +240,7 @@ export class TaskDetail implements OnInit {
       });
   }
 
-  // ================= DOWNLOAD (TC-F04) =================
+  // ================= DOWNLOAD =================
   downloadAttachment(attachment: Attachment) {
     this.attachmentService.download(attachment.id)
       .subscribe({
@@ -253,22 +256,115 @@ export class TaskDetail implements OnInit {
       });
   }
 
-  // ================= DELETE ATTACHMENT (TC-F06) =================
+  // ================= DELETE ATTACHMENT =================
   deleteAttachment(attachmentId: number) {
     if (!confirm('Delete this attachment?')) return;
-
     this.attachmentService.delete(attachmentId)
       .subscribe({
         next: () => {
-          this.attachments = this.attachments
-            .filter(a => a.id !== attachmentId);
+          this.attachments = this.attachments.filter(a => a.id !== attachmentId);
           this.cdr.detectChanges();
         },
         error: (err) => { console.error('Delete attachment failed', err); },
       });
   }
 
-  // ================= HELPERS =================
+  // ================= LOAD SUBTASKS =================
+  loadSubtasks() {
+    this.isLoadingSubtasks = true;
+    this.subtaskService.getSubtasks(this.taskId)
+      .pipe(finalize(() => {
+        this.isLoadingSubtasks = false;
+        this.cdr.detectChanges();
+      }))
+      .subscribe({
+        next: (data) => { this.subtasks = data || []; },
+        error: (err) => { console.error('Error loading subtasks', err); },
+      });
+  }
+
+  // ================= ADD SUBTASK (TC-S01) =================
+  addSubtask() {
+    if (!this.newSubtaskTitle.trim()) return;
+    this.addingSubtask = true;
+
+    this.subtaskService.create(this.taskId, this.newSubtaskTitle.trim())
+      .pipe(finalize(() => {
+        this.addingSubtask = false;
+        this.cdr.detectChanges();
+      }))
+      .subscribe({
+        next: (subtask) => {
+          this.subtasks = [...this.subtasks, subtask];
+          this.newSubtaskTitle = '';
+        },
+        error: (err) => { console.error('Add subtask failed', err); },
+      });
+  }
+
+  // ================= ENTER KEY on input =================
+  onSubtaskKeydown(event: KeyboardEvent) {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      this.addSubtask();
+    }
+  }
+
+  // ================= TOGGLE SUBTASK (TC-S02, TC-S03) =================
+  toggleSubtask(subtask: Subtask) {
+    if (this.isViewer()) return;
+    this.togglingSubtaskId = subtask.id;
+
+    this.subtaskService.toggle(subtask.id)
+      .pipe(finalize(() => {
+        this.togglingSubtaskId = null;
+        this.cdr.detectChanges();
+      }))
+      .subscribe({
+        next: (updated) => {
+          this.subtasks = this.subtasks.map(s =>
+            s.id === updated.id ? updated : s);
+        },
+        error: (err) => { console.error('Toggle failed', err); },
+      });
+  }
+
+  // ================= DELETE SUBTASK (TC-S05) =================
+  deleteSubtask(subtaskId: number) {
+    if (!confirm('Delete this subtask?')) return;
+
+    this.subtaskService.delete(subtaskId)
+      .subscribe({
+        next: () => {
+          this.subtasks = this.subtasks.filter(s => s.id !== subtaskId);
+          this.cdr.detectChanges();
+        },
+        error: (err) => { console.error('Delete subtask failed', err); },
+      });
+  }
+
+  // ================= SUBTASK HELPERS =================
+  getCompletedCount(): number {
+    return this.subtasks.filter(s => s.isComplete).length;
+  }
+
+  getProgressPercent(): number {
+    if (this.subtasks.length === 0) return 0;
+    return Math.round((this.getCompletedCount() / this.subtasks.length) * 100);
+  }
+
+  isAllDone(): boolean {
+    return this.subtasks.length > 0 &&
+           this.getCompletedCount() === this.subtasks.length;
+  }
+
+  canDeleteSubtask(subtask: Subtask): boolean {
+    return subtask.createdById === this.currentUserId ||
+           this.currentUserRole === 'ADMIN' ||
+           this.currentUserRole === 'MANAGER';
+  }
+
+  // ================= SHARED HELPERS =================
   canDeleteAttachment(attachment: Attachment): boolean {
     return attachment.uploaderId === this.currentUserId ||
            this.currentUserRole === 'ADMIN' ||
