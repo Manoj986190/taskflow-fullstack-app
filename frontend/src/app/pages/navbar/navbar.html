@@ -1,5 +1,6 @@
 <nav class="navbar px-4 py-3">
-  <div class="container-fluid d-flex justify-content-between align-items-center flex-wrap gap-3">
+  <div class="container-fluid d-flex justify-content-between
+              align-items-center flex-wrap gap-3">
 
     <!-- BRAND -->
     <span class="navbar-brand fw-bold fs-4">
@@ -15,8 +16,7 @@
         Dashboard
       </a>
 
-      <a 
-         routerLink="/teams"
+      <a routerLink="/teams"
          routerLinkActive="active"
          class="nav-link-item">
         Teams
@@ -36,20 +36,53 @@
 
       <span class="user-name">{{ userName }}</span>
 
+      <!-- ✅ Avatar uses dynamic colour -->
       <div class="avatar dropdown-toggle"
            role="button"
-           data-bs-toggle="dropdown">
+           data-bs-toggle="dropdown"
+           [style.background-color]="avatarColour">
         {{ userInitial }}
       </div>
 
-      <ul class="dropdown-menu dropdown-menu-end">
+      <ul class="dropdown-menu dropdown-menu-end shadow">
+
+        <!-- ✅ SETTINGS LINK -->
         <li>
-          <button class="logout-btn"
+          <button class="dropdown-item d-flex align-items-center gap-2 py-2"
+                  type="button"
+                  (click)="goToSettings()">
+            ⚙️ Settings
+          </button>
+        </li>
+
+        <li><hr class="dropdown-divider my-1"></li>
+
+        <!-- ROLE BADGE -->
+        <li class="px-3 py-1">
+          <small class="text-muted">Role: </small>
+          <span class="badge"
+                [ngClass]="{
+                  'bg-danger':  userRole === 'ADMIN',
+                  'bg-warning text-dark': userRole === 'MANAGER',
+                  'bg-primary': userRole === 'MEMBER',
+                  'bg-secondary': userRole === 'VIEWER'
+                }">
+            {{ userRole }}
+          </span>
+        </li>
+
+        <li><hr class="dropdown-divider my-1"></li>
+
+        <!-- LOGOUT -->
+        <li>
+          <button class="dropdown-item d-flex align-items-center
+                         gap-2 py-2 text-danger"
                   type="button"
                   (click)="logout()">
              Logout
           </button>
         </li>
+
       </ul>
 
     </div>

@@ -1,0 +1,43 @@
+:host {
+  display: block;
+}
+
+/* Force left panel dark background */
+.brand-panel {
+  background-color: #1e293b !important;
+  color: #ffffff !important;
+}
+
+.brand-panel * {
+  color: #ffffff !important;
+}
+
+/* Force right panel white */
+.form-panel {
+  background-color: #ffffff !important;
+  color: #1e293b !important;
+}
+
+.form-panel h2,
+.form-panel label,
+.form-panel p {
+  color: #1e293b !important;
+}
+
+.form-panel .text-muted {
+  color: #64748b !important;
+}
+
+.form-panel .form-control {
+  color: #1e293b !important;
+  background-color: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+.form-panel .form-control::placeholder {
+  color: #94a3b8 !important;
+}
+
+.form-panel a {
+  color: #2563eb !important;
+}

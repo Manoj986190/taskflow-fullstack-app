@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -11,7 +11,7 @@ import { Auth } from '../../services/auth';
   templateUrl: './register.html',
   styleUrl: './register.css',
 })
-export class Register {
+export class Register implements OnInit, OnDestroy {
 
   registerData = {
     fullName: '',
@@ -22,11 +22,19 @@ export class Register {
 
   showPassword = false;
   showConfirmPassword = false;
-
   errorMessage: string = '';
   successMessage: string = '';
 
   constructor(private auth: Auth, private router: Router) {}
+
+  // ✅ Prevent global theme from affecting register page
+  ngOnInit() {
+    document.body.classList.add('auth-page');
+  }
+
+  ngOnDestroy() {
+    document.body.classList.remove('auth-page');
+  }
 
   togglePassword() {
     this.showPassword = !this.showPassword;
@@ -37,17 +45,12 @@ export class Register {
   }
 
   onSubmit(form: NgForm) {
-
     this.errorMessage = '';
     this.successMessage = '';
 
-    // If form invalid or passwords don't match
-    if (form.invalid || this.registerData.password !== this.registerData.confirmPassword) {
-
-      Object.values(form.controls).forEach(control => {
-        control.markAsTouched();
-      });
-
+    if (form.invalid ||
+        this.registerData.password !== this.registerData.confirmPassword) {
+      Object.values(form.controls).forEach(c => c.markAsTouched());
       this.errorMessage = 'Please fill all fields correctly';
       return;
     }
@@ -55,10 +58,7 @@ export class Register {
     this.auth.register(this.registerData).subscribe({
       next: () => {
         this.successMessage = 'Registration successful! Redirecting to login...';
-
-        setTimeout(() => {
-          this.router.navigate(['/login']);
-        }, 1500);
+        setTimeout(() => this.router.navigate(['/login']), 1500);
       },
       error: (err) => {
         this.errorMessage = err.error?.message || 'Registration failed';

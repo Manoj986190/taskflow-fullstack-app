@@ -1,167 +1,180 @@
 <div class="min-h-screen flex items-center justify-center bg-slate-50 px-4">
-  <div class="row shadow-2xl rounded-4 overflow-hidden w-100 max-w-5xl">
+  <div class="row shadow-2xl rounded-4 overflow-hidden w-100"
+       style="max-width: 900px;">
 
-    <!-- LEFT PANEL -->
-    <div class="col-md-6 bg-[#1e293b] text-white d-none d-md-flex flex-column justify-content-center align-items-center p-5">
+    <!-- LEFT BRAND PANEL -->
+    <div class="brand-panel col-md-6 d-none d-md-flex flex-column
+                justify-content-center align-items-center p-5">
 
       <h2 class="fw-bold mb-3">Join TaskFlow</h2>
 
-      <p class="text-center opacity-75">
+      <p class="text-center mb-4" style="opacity:0.85; line-height:1.8;">
         Create your account and <br>
-        take control of your productivity today.
+        take control of your <br>
+        productivity today.
       </p>
 
-      <div class="mt-4 text-center opacity-50 small">
+      <div class="text-center small" style="opacity:0.7;">
         ✔ Organize tasks efficiently <br>
         ✔ Stay focused and productive <br>
-        ✔ Secure & reliable platform
+        ✔ Secure &amp; reliable platform
       </div>
 
     </div>
 
-    <!-- RIGHT PANEL -->
-    <div class="col-md-6 bg-white p-5">
-      <div class="max-w-md mx-auto">
+    <!-- RIGHT REGISTER PANEL -->
+    <div class="form-panel col-md-6 p-5">
 
-        <h2 class="fw-bold fs-4 text-center mb-2">Create Account</h2>
-        <p class="text-center text-muted mb-4">
-          Register to start managing your tasks
-        </p>
+      <h2 class="fw-bold fs-4 text-center mb-2">Create Account</h2>
+      <p class="text-center text-muted mb-4">
+        Register to start managing your tasks
+      </p>
 
-        <!-- Global Error -->
-        <div *ngIf="errorMessage" class="alert alert-danger">
-          {{ errorMessage }}
-        </div>
-
-        <!-- Success -->
-        <div *ngIf="successMessage" class="alert alert-success">
-          {{ successMessage }}
-        </div>
-
-        <form (ngSubmit)="onSubmit(registerForm)" #registerForm="ngForm" novalidate>
-
-          <!-- FULL NAME -->
-          <div class="mb-3">
-            <label class="form-label">Full Name</label>
-            <input
-              type="text"
-              class="form-control"
-              [(ngModel)]="registerData.fullName"
-              name="fullName"
-              required
-              minlength="3"
-              #fullName="ngModel">
-
-            <div *ngIf="fullName.invalid && fullName.touched" class="text-danger small mt-1">
-              <span *ngIf="fullName.errors?.['required']">Full name is required</span>
-              <span *ngIf="fullName.errors?.['minlength']">Minimum 3 characters required</span>
-            </div>
-          </div>
-
-          <!-- EMAIL -->
-          <div class="mb-3">
-            <label class="form-label">Email</label>
-            <input
-              type="email"
-              class="form-control"
-              [(ngModel)]="registerData.email"
-              name="email"
-              required
-              email
-              #email="ngModel">
-
-            <div *ngIf="email.invalid && email.touched" class="text-danger small mt-1">
-              <span *ngIf="email.errors?.['required']">Email is required</span>
-              <span *ngIf="email.errors?.['email']">Enter a valid email address</span>
-            </div>
-          </div>
-
-          <!-- PASSWORD -->
-          <div class="mb-3">
-            <label class="form-label">Password</label>
-
-            <div class="position-relative">
-              <input
-                [type]="showPassword ? 'text' : 'password'"
-                class="form-control pe-5"
-                [(ngModel)]="registerData.password"
-                name="password"
-                required
-                minlength="8"
-                #password="ngModel">
-
-              <button
-                type="button"
-                (click)="togglePassword()"
-                class="position-absolute end-0 top-0 h-100 px-3 border-0 bg-transparent d-flex align-items-center">
-                <span *ngIf="!showPassword">👁</span>
-                <span *ngIf="showPassword">🙈</span>
-              </button>
-            </div>
-
-            <div *ngIf="password.invalid && password.touched" class="text-danger small mt-1">
-              <span *ngIf="password.errors?.['required']">Password is required</span>
-              <span *ngIf="password.errors?.['minlength']">Password must be at least 8 characters</span>
-            </div>
-
-            <div *ngIf="password.valid && password.touched" class="small mt-1"
-              [ngClass]="{
-                'text-warning': registerData.password.length >= 8 && registerData.password.length < 10,
-                'text-success': registerData.password.length >= 10
-              }">
-              {{
-                registerData.password.length < 10
-                ? 'Weak password'
-                : 'Strong password'
-              }}
-            </div>
-          </div>
-
-          <!-- CONFIRM PASSWORD -->
-          <div class="mb-3">
-            <label class="form-label">Confirm Password</label>
-
-            <div class="position-relative">
-              <input
-                [type]="showConfirmPassword ? 'text' : 'password'"
-                class="form-control pe-5"
-                [(ngModel)]="registerData.confirmPassword"
-                name="confirmPassword"
-                required
-                #confirmPassword="ngModel">
-
-              <button
-                type="button"
-                (click)="toggleConfirmPassword()"
-                class="position-absolute end-0 top-0 h-100 px-3 border-0 bg-transparent d-flex align-items-center">
-                <span *ngIf="!showConfirmPassword">👁</span>
-                <span *ngIf="showConfirmPassword">🙈</span>
-              </button>
-            </div>
-
-            <div *ngIf="confirmPassword.touched && registerData.confirmPassword !== registerData.password"
-                 class="text-danger small mt-1">
-              Passwords do not match
-            </div>
-          </div>
-
-          <!-- REGISTER BUTTON -->
-          <button
-            type="submit"
-            class="btn btn-primary w-100 py-2">
-            Register
-          </button>
-
-        </form>
-
-        <p class="text-center mt-4 text-muted">
-          Already have an account?
-          <a routerLink="/login" class="fw-semibold text-primary text-decoration-none">
-            Sign In
-          </a>
-        </p>
-
+      <!-- ERROR -->
+      <div *ngIf="errorMessage"
+           class="alert alert-danger py-2 small">
+        {{ errorMessage }}
       </div>
+
+      <!-- SUCCESS -->
+      <div *ngIf="successMessage"
+           class="alert alert-success py-2 small">
+        {{ successMessage }}
+      </div>
+
+      <form (ngSubmit)="onSubmit(registerForm)"
+            #registerForm="ngForm"
+            novalidate>
+
+        <!-- FULL NAME -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Full Name</label>
+          <input type="text"
+                 class="form-control"
+                 placeholder="Enter your full name"
+                 [(ngModel)]="registerData.fullName"
+                 name="fullName"
+                 required
+                 minlength="3"
+                 #fullName="ngModel">
+          <div *ngIf="fullName.invalid && fullName.touched"
+               class="text-danger small mt-1">
+            <span *ngIf="fullName.errors?.['required']">
+              Full name is required
+            </span>
+            <span *ngIf="fullName.errors?.['minlength']">
+              Minimum 3 characters required
+            </span>
+          </div>
+        </div>
+
+        <!-- EMAIL -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Email</label>
+          <input type="email"
+                 class="form-control"
+                 placeholder="Enter your email"
+                 [(ngModel)]="registerData.email"
+                 name="email"
+                 required
+                 email
+                 #email="ngModel">
+          <div *ngIf="email.invalid && email.touched"
+               class="text-danger small mt-1">
+            <span *ngIf="email.errors?.['required']">
+              Email is required
+            </span>
+            <span *ngIf="email.errors?.['email']">
+              Enter a valid email address
+            </span>
+          </div>
+        </div>
+
+        <!-- PASSWORD -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Password</label>
+          <div class="position-relative">
+            <input [type]="showPassword ? 'text' : 'password'"
+                   class="form-control pe-5"
+                   placeholder="Min 8 characters"
+                   [(ngModel)]="registerData.password"
+                   name="password"
+                   required
+                   minlength="8"
+                   #password="ngModel">
+            <button type="button"
+                    (click)="togglePassword()"
+                    class="position-absolute border-0 bg-transparent p-0"
+                    style="right:12px; top:10px; cursor:pointer;">
+              <span *ngIf="!showPassword">👁️</span>
+              <span *ngIf="showPassword">🙈</span>
+            </button>
+          </div>
+          <div *ngIf="password.invalid && password.touched"
+               class="text-danger small mt-1">
+            <span *ngIf="password.errors?.['required']">
+              Password is required
+            </span>
+            <span *ngIf="password.errors?.['minlength']">
+              Password must be at least 8 characters
+            </span>
+          </div>
+          <div *ngIf="password.valid && password.touched"
+               class="small mt-1"
+               [ngClass]="{
+                 'text-warning': registerData.password.length >= 8
+                                 && registerData.password.length < 10,
+                 'text-success': registerData.password.length >= 10
+               }">
+            {{ registerData.password.length < 10
+               ? 'Weak password' : 'Strong password' }}
+          </div>
+        </div>
+
+        <!-- CONFIRM PASSWORD -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Confirm Password</label>
+          <div class="position-relative">
+            <input [type]="showConfirmPassword ? 'text' : 'password'"
+                   class="form-control pe-5"
+                   placeholder="Repeat your password"
+                   [(ngModel)]="registerData.confirmPassword"
+                   name="confirmPassword"
+                   required
+                   #confirmPassword="ngModel">
+            <button type="button"
+                    (click)="toggleConfirmPassword()"
+                    class="position-absolute border-0 bg-transparent p-0"
+                    style="right:12px; top:10px; cursor:pointer;">
+              <span *ngIf="!showConfirmPassword">👁️</span>
+              <span *ngIf="showConfirmPassword">🙈</span>
+            </button>
+          </div>
+          <div *ngIf="confirmPassword.touched &&
+                      registerData.confirmPassword !== registerData.password"
+               class="text-danger small mt-1">
+            Passwords do not match
+          </div>
+        </div>
+
+        <!-- SUBMIT -->
+        <button type="submit"
+                class="btn btn-primary w-100 py-2 fw-semibold">
+          Register
+        </button>
+
+      </form>
+
+      <!-- LOGIN LINK -->
+      <p class="text-center mt-4 text-muted">
+        Already have an account?
+        <a routerLink="/login"
+           class="fw-semibold text-decoration-none"
+           style="color:#2563eb;">
+          Sign In
+        </a>
+      </p>
+
     </div>
 
   </div>

@@ -1,4 +1,47 @@
-/* You can add global styles to this file, and also import other style files */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ===========================
+   THEME CSS VARIABLES
+   =========================== */
+:root {
+  --bg-primary:   #F4F6FA;
+  --bg-card:      #FFFFFF;
+  --text-primary: #1E293B;
+  --text-muted:   #64748B;
+  --border-color: #CBD5E1;
+  --nav-bg:       #1E3A5F;
+}
+
+[data-theme="dark"] {
+  --bg-primary:   #0F172A;
+  --bg-card:      #1E293B;
+  --text-primary: #F1F5F9;
+  --text-muted:   #94A3B8;
+  --border-color: #334155;
+  --nav-bg:       #0F172A;
+}
+
+/* ✅ Only apply theme to app pages — NOT login/register */
+body:not(.auth-page) {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body:not(.auth-page) .card {
+  background-color: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+body:not(.auth-page) .text-muted {
+  color: var(--text-muted) !important;
+}
+
+/* ✅ Auth pages always light */
+body.auth-page {
+  background-color: #f1f5f9 !important;
+  color: #1e293b !important;
+}

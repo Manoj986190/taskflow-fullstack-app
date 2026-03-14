@@ -12,6 +12,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const token = auth.getToken();
 
+  // ✅ ADD debug log
+  console.log('Interceptor:', req.method, req.url, 'Token:', token ? 'EXISTS' : 'NULL');
+
   let authReq = req;
 
   // ✅ Attach JWT if available

@@ -35,21 +35,39 @@ public class TaskService {
     private final ActivityLogRepository activityLogRepository;  // ✅ ADD
 
     // =========================================================
-    // GET ALL TASKS (VISIBLE TO ALL USERS)
+    // GET ALL TASKS (VISIBLE TO ADMIN,MANAGER,VIEWER USERS)
     // =========================================================
     public List<TaskResponse> getTasksForUser(String email, TaskPriority priority) {
 
-        List<Task> tasks;
+            User user = getUserByEmail(email);
+            List<Task> tasks;
 
-        if (priority != null) {
-            tasks = taskRepository.findByPriority(priority);
-        } else {
-            tasks = taskRepository.findAll();
-        }
+            // ✅ ADMIN + MANAGER + VIEWER see all tasks
+            // VIEWER sees all but read-only (enforced in other endpoints)
+            if (user.getRole().name().equals("ADMIN") ||
+                            user.getRole().name().equals("MANAGER") ||
+                            user.getRole().name().equals("VIEWER")) {
+                    if (priority != null) {
+                            tasks = taskRepository.findByPriority(priority);
+                    } else {
+                            tasks = taskRepository.findAll();
+                    }
+            } else {
+                    // ✅ MEMBER sees only own + assigned tasks
+                    if (priority != null) {
+                            tasks = taskRepository
+                                            .findByUser_IdOrAssignedTo_IdAndPriority(
+                                                            user.getId(), user.getId(), priority);
+                    } else {
+                            tasks = taskRepository
+                                            .findByUser_IdOrAssignedTo_Id(
+                                                            user.getId(), user.getId());
+                    }
+            }
 
-        return tasks.stream()
-                .map(this::mapToResponse)
-                .toList();
+            return tasks.stream()
+                            .map(this::mapToResponse)
+                            .toList();
     }
 
     // =========================================================

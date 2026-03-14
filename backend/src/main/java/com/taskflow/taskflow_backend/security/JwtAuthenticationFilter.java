@@ -1,5 +1,6 @@
 package com.taskflow.taskflow_backend.security;
 
+import com.taskflow.taskflow_backend.repository.TokenBlocklistRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,6 +22,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+    private final TokenBlocklistRepository tokenBlocklistRepository; // ✅ ADD
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -38,7 +40,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String token = authHeader.substring(7);
 
         String email;
-
         try {
             email = jwtService.extractEmail(token);
         } catch (Exception e) {
@@ -46,12 +47,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
+        // ✅ CHECK BLOCKLIST — if jti is revoked, reject immediately
+        try {
+            String jti = jwtService.extractJti(token);
+            if (jti != null && tokenBlocklistRepository.existsByJti(jti)) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json");
+                response.getWriter().write(
+                    "{\"status\":401,\"message\":\"Session has been revoked\"}");
+                return;
+            }
+        } catch (Exception e) {
+            // ✅ Don't return — just skip blocklist check and continue
+            System.out.println("JTI check skipped: " + e.getMessage());
+        }
+
         if (email != null
-                && SecurityContextHolder.getContext().getAuthentication() == null) {
+                && SecurityContextHolder.getContext()
+                        .getAuthentication() == null) {
 
-             UserDetails userDetails;
-
-            // ✅ Catch DisabledException so it doesn't cause 401
+            UserDetails userDetails;
             try {
                 userDetails = userDetailsService.loadUserByUsername(email);
             } catch (Exception e) {
@@ -65,16 +80,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         new UsernamePasswordAuthenticationToken(
                                 userDetails,
                                 null,
-                                userDetails.getAuthorities()
-                        );
+                                userDetails.getAuthorities());
 
                 authToken.setDetails(
                         new WebAuthenticationDetailsSource()
-                                .buildDetails(request)
-                );
+                                .buildDetails(request));
 
-                SecurityContextHolder
-                        .getContext()
+                SecurityContextHolder.getContext()
                         .setAuthentication(authToken);
             }
         }

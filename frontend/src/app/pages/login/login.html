@@ -1,109 +1,103 @@
 <div class="min-h-screen flex items-center justify-center bg-slate-50 px-4">
-  <div class="row shadow-2xl rounded-4 overflow-hidden w-100 max-w-5xl">
+  <div class="row shadow-2xl rounded-4 overflow-hidden w-100"
+       style="max-width: 900px;">
 
     <!-- LEFT BRAND PANEL -->
-    <div class="col-md-6 bg-[#1e293b] text-white d-none d-md-flex flex-column justify-content-center align-items-center p-5">
+    <div class="brand-panel col-md-6 d-none d-md-flex flex-column
+                justify-content-center align-items-center p-5">
 
       <h2 class="fw-bold mb-3">TaskFlow</h2>
 
-      <p class="text-center opacity-75">
+      <p class="text-center mb-4" style="opacity:0.85; line-height:1.8;">
         Simplify your productivity. <br>
         Plan smarter. Track faster. <br>
         Achieve more every day.
       </p>
 
-      <div class="mt-4 text-center opacity-50 small">
+      <div class="text-center small" style="opacity:0.7;">
         ✔ Manage tasks effortlessly <br>
-        ✔ Set deadlines & priorities <br>
+        ✔ Set deadlines &amp; priorities <br>
         ✔ Stay organized anywhere
       </div>
 
     </div>
 
     <!-- RIGHT LOGIN PANEL -->
-    <div class="col-md-6 bg-white p-5">
+    <div class="form-panel col-md-6 p-5">
 
-      <div class="max-w-md mx-auto">
+      <h2 class="fw-bold fs-4 text-center mb-2">Welcome Back</h2>
+      <p class="text-center text-muted mb-4">
+        Sign in to your account
+      </p>
 
-        <h2 class="fw-bold fs-4 text-center mb-2">Welcome Back</h2>
-        <p class="text-center text-muted mb-4">
-          Sign in to your account
-        </p>
+      <!-- FORM -->
+      <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
 
-        <!-- FORM -->
-        <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
+        <!-- EMAIL -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Email</label>
+          <input type="email"
+                 class="form-control"
+                 placeholder="Enter your email"
+                 [(ngModel)]="loginData.email"
+                 name="email"
+                 required>
+        </div>
 
-          <!-- EMAIL -->
-          <div class="mb-3">
-            <label class="form-label">Email</label>
-            <input
-              type="email"
-              class="form-control"
-              placeholder="Enter your email"
-              [(ngModel)]="loginData.email"
-              name="email"
-              required>
-          </div>
+        <!-- PASSWORD -->
+        <div class="mb-2 position-relative">
+          <label class="form-label fw-semibold">Password</label>
+          <input [type]="showPassword ? 'text' : 'password'"
+                 class="form-control pe-5"
+                 placeholder="Enter your password"
+                 [(ngModel)]="loginData.password"
+                 name="password"
+                 required>
 
-          <!-- PASSWORD -->
-          <div class="mb-2 position-relative">
-            <label class="form-label">Password</label>
-
-            <input
-              [type]="showPassword ? 'text' : 'password'"
-              class="form-control pe-5"
-              placeholder="Enter your password"
-              [(ngModel)]="loginData.password"
-              name="password"
-              required>
-
-            <!-- Eye Button -->
-            <button
-              type="button"
-              (click)="togglePassword()"
-              class="position-absolute border-0 bg-transparent"
-              style="right: 12px; top: 38px; cursor: pointer;">
-
-              <span *ngIf="!showPassword">👁</span>
-              <span *ngIf="showPassword">🙈</span>
-
-            </button>
-          </div>
-
-          <!-- FORGOT PASSWORD -->
-          <div class="mb-3">
-            <a routerLink="/forgot-password"
-               class="small text-primary text-decoration-none">
-              Forgot your password?
-            </a>
-          </div>
-
-          <!-- ERROR -->
-          <div *ngIf="errorMessage"
-               class="alert alert-danger py-2">
-            {{ errorMessage }}
-          </div>
-
-          <!-- SUBMIT -->
-          <button
-            type="submit"
-            class="btn btn-primary w-100 py-2"
-            [disabled]="loginForm.invalid">
-            Sign In
+          <!-- EYE BUTTON -->
+          <button type="button"
+                  (click)="togglePassword()"
+                  class="position-absolute border-0 bg-transparent p-0"
+                  style="right:12px; top:38px; cursor:pointer;">
+            <span *ngIf="!showPassword">👁️</span>
+            <span *ngIf="showPassword">🙈</span>
           </button>
+        </div>
 
-        </form>
-
-        <!-- REGISTER -->
-        <p class="text-center mt-4 text-muted">
-          Don’t have an account?
-          <a routerLink="/register"
-             class="fw-semibold text-primary text-decoration-none">
-            Register here
+        <!-- FORGOT PASSWORD -->
+        <div class="mb-3">
+          <a routerLink="/forgot-password"
+             class="small text-decoration-none"
+             style="color:#2563eb;">
+            Forgot your password?
           </a>
-        </p>
+        </div>
 
-      </div>
+        <!-- ERROR -->
+        <div *ngIf="errorMessage"
+             class="alert alert-danger py-2 small">
+          {{ errorMessage }}
+        </div>
+
+        <!-- SUBMIT -->
+        <button type="submit"
+                class="btn btn-primary w-100 py-2 fw-semibold"
+                [disabled]="loginForm.invalid">
+          Sign In
+        </button>
+
+      </form>
+
+      <!-- REGISTER -->
+      <p class="text-center mt-4 text-muted">
+        Don't have an account?
+        <a routerLink="/register"
+           class="fw-semibold text-decoration-none"
+           style="color:#2563eb;">
+          Register here
+        </a>
+      </p>
+
     </div>
 
   </div>

@@ -1,0 +1,58 @@
+:host {
+  display: block;
+}
+
+/* LEFT BRAND PANEL */
+.brand-panel {
+  background-color: #1e293b !important;
+  color: #ffffff !important;
+}
+
+.brand-panel * {
+  color: #ffffff !important;
+}
+
+/* RIGHT FORM PANEL */
+.form-panel {
+  background-color: #ffffff !important;
+  color: #1e293b !important;
+}
+
+.form-panel h2,
+.form-panel label {
+  color: #1e293b !important;
+}
+
+.form-panel .text-muted {
+  color: #64748b !important;
+}
+
+.form-panel .form-control {
+  color: #1e293b !important;
+  background-color: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+.form-panel .form-control::placeholder {
+  color: #94a3b8 !important;
+}
+
+.form-panel .form-control:focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12) !important;
+  outline: none !important;
+}
+
+.form-panel a {
+  color: #2563eb !important;
+}
+
+/* WRAPPER */
+.min-h-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f1f5f9;
+  padding: 1rem;
+}

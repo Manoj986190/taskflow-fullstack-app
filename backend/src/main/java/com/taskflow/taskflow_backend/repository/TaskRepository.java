@@ -4,8 +4,10 @@ import com.taskflow.taskflow_backend.entity.Task;
 import com.taskflow.taskflow_backend.entity.TaskPriority;
 import com.taskflow.taskflow_backend.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +23,19 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
     Optional<Task> findByIdAndUser(Long id, User user);
     List<Task> findByTeam_Id(Long teamId);  // ✅ ADD
+
+    // ✅ For MEMBER/VIEWER — own or assigned tasks
+    List<Task> findByUser_IdOrAssignedTo_Id(
+                    Long userId, Long assignedToId);
+
+    // ✅ With priority filter
+    @Query("SELECT t FROM Task t WHERE " +
+                    "(t.user.id = :userId OR t.assignedTo.id = :assignedToId) " +
+                    "AND t.priority = :priority")
+    List<Task> findByUser_IdOrAssignedTo_IdAndPriority(
+                    @Param("userId") Long userId,
+                    @Param("assignedToId") Long assignedToId,
+                    @Param("priority") TaskPriority priority);
 
     @Query("""
                 SELECT t FROM Task t
@@ -109,4 +124,10 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
             AND t.created_at >= CURRENT_DATE - INTERVAL '7 days'
             """, nativeQuery = true)
     int countTasksThisWeek(User user);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE Task t SET t.assignedTo = null WHERE t.assignedTo.id = :userId")
+    void clearAssignedTo(@Param("userId") Long userId);
+    
 }

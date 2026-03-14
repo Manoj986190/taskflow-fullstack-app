@@ -1,7 +1,8 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ToastService } from './services/toast';
+import { ThemeService } from './services/theme';
 
 @Component({
   selector: 'app-root',
@@ -10,7 +11,12 @@ import { ToastService } from './services/toast';
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
-export class App {
+export class App implements OnInit {
   protected readonly title = signal('frontend');
   toastService = inject(ToastService);
+  private themeService = inject(ThemeService);
+
+  ngOnInit() {
+    this.themeService.init(); // ✅ Apply saved theme on every app startup
+  }
 }

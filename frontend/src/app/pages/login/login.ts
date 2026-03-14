@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component, ChangeDetectorRef, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -11,7 +11,7 @@ import { Auth } from '../../services/auth';
   templateUrl: './login.html',
   styleUrl: './login.css',
 })
-export class Login {
+export class Login implements OnInit, OnDestroy {
 
   loginData = {
     email: '',
@@ -19,11 +19,21 @@ export class Login {
   };
 
   errorMessage: string = '';
-
-  // 👁 Password toggle
   showPassword: boolean = false;
 
-  constructor(private auth: Auth, private router: Router, private cdr: ChangeDetectorRef) {}
+  constructor(
+    private auth: Auth,
+    private router: Router,
+    private cdr: ChangeDetectorRef) {}
+
+  // ✅ Prevent global theme from affecting login page
+  ngOnInit() {
+    document.body.classList.add('auth-page');
+  }
+
+  ngOnDestroy() {
+    document.body.classList.remove('auth-page');
+  }
 
   togglePassword() {
     this.showPassword = !this.showPassword;
@@ -34,14 +44,11 @@ export class Login {
 
     this.auth.login(this.loginData).subscribe({
       next: (response) => {
-        // Save token
         this.auth.saveToken(response.token);
 
-        // ✅ Read role from JWT
         const payload = JSON.parse(atob(response.token.split('.')[1]));
         const role = payload.role;
 
-        // ✅ Redirect based on role
         if (role === 'ADMIN') {
           this.router.navigate(['/admin']);
         } else if (role === 'MANAGER') {
@@ -51,14 +58,12 @@ export class Login {
         }
       },
       error: (err) => {
-        // ✅ Handle all possible error message locations
         this.errorMessage =
           err.error?.message ||
           err.error?.error ||
           err.message ||
           'Invalid email or password';
-
-        this.cdr.detectChanges();  // ✅ Force UI update
+        this.cdr.detectChanges();
       }
     });
   }

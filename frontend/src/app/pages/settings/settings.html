@@ -1,0 +1,516 @@
+<div class="min-vh-100" style="background-color: var(--bg-primary);">
+  <app-navbar></app-navbar>
+
+  <div class="container py-4">
+
+    <!-- ===== MOBILE TAB BAR (small screens only) ===== -->
+    <div class="d-flex d-md-none gap-2 overflow-auto pb-2 mb-3">
+
+      <button class="btn btn-sm flex-shrink-0"
+              [ngClass]="activeTab==='profile'
+                         ? 'btn-primary' : 'btn-outline-secondary'"
+              (click)="setTab('profile')">
+        👤 Profile
+      </button>
+
+      <button class="btn btn-sm flex-shrink-0"
+              [ngClass]="activeTab==='security'
+                         ? 'btn-primary' : 'btn-outline-secondary'"
+              (click)="setTab('security')">
+        🔒 Security
+      </button>
+
+      <button class="btn btn-sm flex-shrink-0"
+              [ngClass]="activeTab==='theme'
+                         ? 'btn-primary' : 'btn-outline-secondary'"
+              (click)="setTab('theme')">
+        🎨 Theme
+      </button>
+
+      <button class="btn btn-sm flex-shrink-0"
+              [ngClass]="activeTab==='notifications'
+                         ? 'btn-primary' : 'btn-outline-secondary'"
+              (click)="setTab('notifications')">
+        🔔 Notifications
+      </button>
+
+      <button *ngIf="isAdminOrManager()"
+              class="btn btn-sm flex-shrink-0"
+              [ngClass]="activeTab==='team'
+                         ? 'btn-primary' : 'btn-outline-secondary'"
+              (click)="setTab('team')">
+        👥 Team
+      </button>
+
+    </div>
+
+    <div class="row g-4">
+
+      <!-- ===== LEFT SIDEBAR (desktop only) ===== -->
+      <div class="col-md-3 d-none d-md-block">
+        <div class="card shadow-sm p-3">
+
+          <h6 class="text-muted small fw-bold text-uppercase mb-3">
+            Settings
+          </h6>
+
+          <div class="d-flex flex-column gap-1">
+
+            <button class="btn text-start rounded-2 px-3 py-2"
+                    [ngClass]="activeTab==='profile'
+                               ? 'btn-primary' : 'btn-light'"
+                    (click)="setTab('profile')">
+              👤 Profile
+            </button>
+
+            <button class="btn text-start rounded-2 px-3 py-2"
+                    [ngClass]="activeTab==='security'
+                               ? 'btn-primary' : 'btn-light'"
+                    (click)="setTab('security')">
+              🔒 Security
+            </button>
+
+            <button class="btn text-start rounded-2 px-3 py-2"
+                    [ngClass]="activeTab==='theme'
+                               ? 'btn-primary' : 'btn-light'"
+                    (click)="setTab('theme')">
+              🎨 Theme
+            </button>
+
+            <button class="btn text-start rounded-2 px-3 py-2"
+                    [ngClass]="activeTab==='notifications'
+                               ? 'btn-primary' : 'btn-light'"
+                    (click)="setTab('notifications')">
+              🔔 Notifications
+            </button>
+
+            <button *ngIf="isAdminOrManager()"
+                    class="btn text-start rounded-2 px-3 py-2"
+                    [ngClass]="activeTab==='team'
+                               ? 'btn-primary' : 'btn-light'"
+                    (click)="setTab('team')">
+              👥 Team Settings
+            </button>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== RIGHT CONTENT ===== -->
+      <div class="col-12 col-md-9">
+
+        <!-- ===========================
+             PROFILE TAB
+             =========================== -->
+        <div *ngIf="activeTab === 'profile'" class="card shadow-sm p-4">
+
+          <h5 class="fw-bold mb-4">👤 Profile Settings</h5>
+
+          <!-- AVATAR PREVIEW -->
+          <div class="d-flex align-items-center gap-4 mb-4 flex-wrap">
+            <div class="rounded-circle d-flex align-items-center
+                        justify-content-center fw-bold text-white flex-shrink-0"
+                 [style.background-color]="profile.avatarColour"
+                 style="width:72px; height:72px; font-size:1.5rem;">
+              {{ getInitials() }}
+            </div>
+            <div>
+              <label class="form-label small fw-semibold">
+                Avatar Colour
+              </label>
+              <input type="color"
+                     class="form-control form-control-color"
+                     [(ngModel)]="profile.avatarColour"
+                     style="width:60px; height:38px;">
+            </div>
+          </div>
+
+          <!-- FULL NAME -->
+          <div class="mb-3">
+            <label class="form-label">Full Name</label>
+            <input type="text"
+                   class="form-control"
+                   [(ngModel)]="profile.fullName"
+                   placeholder="Your full name">
+          </div>
+
+          <!-- EMAIL (read-only) -->
+          <div class="mb-3">
+            <label class="form-label">Email Address</label>
+            <input type="email"
+                   class="form-control bg-light"
+                   [value]="profile.email"
+                   readonly>
+            <small class="text-muted">
+              Email cannot be changed here.
+            </small>
+          </div>
+
+          <!-- BIO -->
+          <div class="mb-3">
+            <label class="form-label">Bio (optional)</label>
+            <textarea class="form-control"
+                      rows="3"
+                      [(ngModel)]="profile.bio"
+                      maxlength="200"
+                      placeholder="Tell us about yourself...">
+            </textarea>
+            <small class="text-muted">
+              {{ (profile.bio || '').length }}/200
+            </small>
+          </div>
+
+          <!-- SUCCESS / ERROR -->
+          <div *ngIf="profileSuccess"
+               class="alert alert-success py-2 small">
+            ✅ Profile updated successfully!
+          </div>
+          <div *ngIf="profileError"
+               class="alert alert-danger py-2 small">
+            ⚠️ {{ profileError }}
+          </div>
+
+          <button class="btn btn-primary"
+                  [disabled]="profileSaving"
+                  (click)="saveProfile()">
+            <span *ngIf="!profileSaving">Save Profile</span>
+            <span *ngIf="profileSaving"
+                  class="spinner-border spinner-border-sm"></span>
+          </button>
+
+          <!-- DANGER ZONE -->
+          <div class="border border-danger rounded p-3 mt-5">
+            <h6 class="text-danger fw-bold">⚠️ Danger Zone</h6>
+            <p class="text-muted small mb-3">
+              Deleting your account is permanent and cannot be undone.
+              Type your email to confirm.
+            </p>
+            <input type="email"
+                   class="form-control form-control-sm mb-2"
+                   [(ngModel)]="deleteConfirmEmail"
+                   placeholder="Type your email to confirm">
+            <button class="btn btn-danger btn-sm"
+                    [disabled]="deleteConfirmEmail !== profile.email
+                                || deletingAccount"
+                    (click)="deleteAccount()">
+              <span *ngIf="!deletingAccount">Delete My Account</span>
+              <span *ngIf="deletingAccount"
+                    class="spinner-border spinner-border-sm"></span>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- ===========================
+             SECURITY TAB
+             =========================== -->
+        <div *ngIf="activeTab === 'security'" class="card shadow-sm p-4">
+
+          <h5 class="fw-bold mb-4">🔒 Security Settings</h5>
+
+          <!-- CHANGE PASSWORD -->
+          <h6 class="fw-semibold mb-3">Change Password</h6>
+
+          <div class="mb-3">
+            <label class="form-label small">Current Password</label>
+            <input type="password"
+                   class="form-control"
+                   [(ngModel)]="currentPassword"
+                   placeholder="Enter current password">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small">New Password</label>
+            <input type="password"
+                   class="form-control"
+                   [(ngModel)]="newPassword"
+                   (ngModelChange)="checkStrength()"
+                   placeholder="Min 8 characters">
+
+            <!-- STRENGTH BAR -->
+            <div *ngIf="newPassword" class="mt-2">
+              <div class="progress" style="height:6px;">
+                <div class="progress-bar"
+                     [ngClass]="getStrengthClass()"
+                     [style.width.%]="passwordStrength * 25">
+                </div>
+              </div>
+              <small [ngClass]="{
+                'text-danger':  passwordStrength === 1,
+                'text-warning': passwordStrength === 2,
+                'text-info':    passwordStrength === 3,
+                'text-success': passwordStrength === 4
+              }">{{ getStrengthLabel() }}</small>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small">Confirm New Password</label>
+            <input type="password"
+                   class="form-control"
+                   [(ngModel)]="confirmPassword"
+                   placeholder="Repeat new password">
+          </div>
+
+          <!-- SUCCESS / ERROR -->
+          <div *ngIf="passwordSuccess"
+               class="alert alert-success py-2 small">
+            ✅ Password changed successfully!
+          </div>
+          <div *ngIf="passwordError"
+               class="alert alert-danger py-2 small">
+            ⚠️ {{ passwordError }}
+          </div>
+
+          <button class="btn btn-primary mb-5"
+                  [disabled]="!currentPassword || !newPassword
+                              || !confirmPassword || passwordSaving"
+                  (click)="changePassword()">
+            <span *ngIf="!passwordSaving">Change Password</span>
+            <span *ngIf="passwordSaving"
+                  class="spinner-border spinner-border-sm"></span>
+          </button>
+
+          <!-- ACTIVE SESSIONS -->
+          <h6 class="fw-semibold mb-3">Active Sessions</h6>
+
+          <div *ngIf="sessions.length === 0"
+               class="text-muted small py-2">
+            No active sessions found.
+          </div>
+
+          <div *ngFor="let session of sessions"
+               class="d-flex justify-content-between align-items-center
+                      border rounded p-3 mb-2 flex-wrap gap-2"
+               [ngClass]="session.current
+                          ? 'border-success bg-success bg-opacity-10' : ''">
+
+            <div>
+              <div class="fw-semibold small">
+                {{ session.deviceHint }}
+                <span *ngIf="session.current"
+                      class="badge bg-success ms-2">
+                  Current
+                </span>
+              </div>
+              <small class="text-muted font-monospace">
+                Session ID: {{ session.jti.slice(0, 8) }}...
+              </small>
+            </div>
+
+            <button *ngIf="!session.current"
+                    class="btn btn-sm btn-outline-danger"
+                    (click)="revokeSession(session.jti)">
+              Revoke
+            </button>
+
+          </div>
+
+        </div>
+
+        <!-- ===========================
+             THEME TAB
+             =========================== -->
+        <div *ngIf="activeTab === 'theme'" class="card shadow-sm p-4">
+
+          <h5 class="fw-bold mb-2">🎨 Theme Settings</h5>
+          <p class="text-muted small mb-4">
+            Choose your preferred theme. Changes apply instantly.
+          </p>
+
+          <div class="row g-3">
+
+            <!-- LIGHT -->
+            <div class="col-4">
+              <div class="border rounded-3 p-3 text-center h-100"
+                   [ngClass]="selectedTheme === 'LIGHT'
+                              ? 'border-primary border-2 bg-primary bg-opacity-10'
+                              : ''"
+                   style="cursor:pointer;"
+                   (click)="applyTheme('LIGHT')">
+                <div class="mb-2 fs-3">☀️</div>
+                <div class="fw-semibold small">Light</div>
+                <div *ngIf="selectedTheme === 'LIGHT'"
+                     class="text-primary small mt-1">
+                  ✓ Active
+                </div>
+              </div>
+            </div>
+
+            <!-- DARK -->
+            <div class="col-4">
+              <div class="border rounded-3 p-3 text-center h-100"
+                   [ngClass]="selectedTheme === 'DARK'
+                              ? 'border-primary border-2 bg-primary bg-opacity-10'
+                              : ''"
+                   style="cursor:pointer;"
+                   (click)="applyTheme('DARK')">
+                <div class="mb-2 fs-3">🌙</div>
+                <div class="fw-semibold small">Dark</div>
+                <div *ngIf="selectedTheme === 'DARK'"
+                     class="text-primary small mt-1">
+                  ✓ Active
+                </div>
+              </div>
+            </div>
+
+            <!-- SYSTEM -->
+            <div class="col-4">
+              <div class="border rounded-3 p-3 text-center h-100"
+                   [ngClass]="selectedTheme === 'SYSTEM'
+                              ? 'border-primary border-2 bg-primary bg-opacity-10'
+                              : ''"
+                   style="cursor:pointer;"
+                   (click)="applyTheme('SYSTEM')">
+                <div class="mb-2 fs-3">💻</div>
+                <div class="fw-semibold small">System</div>
+                <div *ngIf="selectedTheme === 'SYSTEM'"
+                     class="text-primary small mt-1">
+                  ✓ Active
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- ===========================
+             NOTIFICATIONS TAB
+             =========================== -->
+        <div *ngIf="activeTab === 'notifications'"
+             class="card shadow-sm p-4">
+
+          <h5 class="fw-bold mb-2">🔔 Notification Preferences</h5>
+          <p class="text-muted small mb-4">
+            Toggle which notifications you receive.
+            Changes save automatically.
+          </p>
+
+          <!-- TASK ASSIGNED -->
+          <div class="d-flex justify-content-between align-items-center
+                      border-start border-4 border-primary
+                      p-3 mb-3 rounded-end flex-wrap gap-2">
+            <div>
+              <div class="fw-semibold small">📋 Task Assigned to Me</div>
+              <div class="text-muted" style="font-size:0.8rem;">
+                Notify when someone assigns a task to me
+              </div>
+            </div>
+            <div class="form-check form-switch mb-0">
+              <input class="form-check-input"
+                     type="checkbox"
+                     role="switch"
+                     [(ngModel)]="prefs.notifyAssigned"
+                     (change)="savePreferences()">
+            </div>
+          </div>
+
+          <!-- COMMENT -->
+          <div class="d-flex justify-content-between align-items-center
+                      border-start border-4 border-info
+                      p-3 mb-3 rounded-end flex-wrap gap-2">
+            <div>
+              <div class="fw-semibold small">💬 Comment on My Task</div>
+              <div class="text-muted" style="font-size:0.8rem;">
+                Notify when someone comments on my task
+              </div>
+            </div>
+            <div class="form-check form-switch mb-0">
+              <input class="form-check-input"
+                     type="checkbox"
+                     role="switch"
+                     [(ngModel)]="prefs.notifyComment"
+                     (change)="savePreferences()">
+            </div>
+          </div>
+
+          <!-- SUBTASK -->
+          <div class="d-flex justify-content-between align-items-center
+                      border-start border-4 border-success
+                      p-3 mb-3 rounded-end flex-wrap gap-2">
+            <div>
+              <div class="fw-semibold small">✅ Subtask Completed</div>
+              <div class="text-muted" style="font-size:0.8rem;">
+                Notify when a subtask on my task is marked done
+              </div>
+            </div>
+            <div class="form-check form-switch mb-0">
+              <input class="form-check-input"
+                     type="checkbox"
+                     role="switch"
+                     [(ngModel)]="prefs.notifySubtask"
+                     (change)="savePreferences()">
+            </div>
+          </div>
+
+          <!-- OVERDUE -->
+          <div class="d-flex justify-content-between align-items-center
+                      border-start border-4 border-danger
+                      p-3 mb-3 rounded-end flex-wrap gap-2">
+            <div>
+              <div class="fw-semibold small">⚠️ Task Overdue</div>
+              <div class="text-muted" style="font-size:0.8rem;">
+                Show a banner when any of my tasks become overdue
+              </div>
+            </div>
+            <div class="form-check form-switch mb-0">
+              <input class="form-check-input"
+                     type="checkbox"
+                     role="switch"
+                     [(ngModel)]="prefs.notifyOverdue"
+                     (change)="savePreferences()">
+            </div>
+          </div>
+
+          <!-- TEAM UPDATES -->
+          <div class="d-flex justify-content-between align-items-center
+                      border-start border-4 border-warning
+                      p-3 mb-3 rounded-end flex-wrap gap-2">
+            <div>
+              <div class="fw-semibold small">👥 Team Updates</div>
+              <div class="text-muted" style="font-size:0.8rem;">
+                Notify when I am added to or removed from a team
+              </div>
+            </div>
+            <div class="form-check form-switch mb-0">
+              <input class="form-check-input"
+                     type="checkbox"
+                     role="switch"
+                     [(ngModel)]="prefs.notifyTeam"
+                     (change)="savePreferences()">
+            </div>
+          </div>
+
+          <small class="text-muted fst-italic">
+            Preferences saved to user_preferences table automatically.
+          </small>
+
+        </div>
+
+        <!-- ===========================
+             TEAM SETTINGS TAB
+             =========================== -->
+        <div *ngIf="activeTab === 'team'" class="card shadow-sm p-4">
+
+          <div class="alert border-0 mb-4"
+               style="background-color:#f3e8ff; color:#6b21a8;">
+            🔐 Visible to Admin and Manager roles only
+          </div>
+
+          <h5 class="fw-bold mb-3">👥 Team Settings</h5>
+          <p class="text-muted small mb-4">
+            Manage your teams here. For full team management,
+            visit the Teams page.
+          </p>
+
+          <a routerLink="/teams" class="btn btn-primary">
+            Go to Teams Page →
+          </a>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
