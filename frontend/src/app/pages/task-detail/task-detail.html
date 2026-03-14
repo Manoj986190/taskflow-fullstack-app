@@ -137,6 +137,148 @@
   
   </div>
 
+  <!-- ================= TIME TRACKING SECTION ================= -->
+  <div *ngIf="task && !isLoadingTask" class="card shadow-sm p-4 mb-4">
+  
+    <!-- HEADER + TOTAL -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="mb-0">⏱ Time Tracking</h5>
+      <span class="badge bg-secondary fs-6">
+        Total: {{ formatDuration(totalMinutes) }}
+      </span>
+    </div>
+  
+    <!-- VIEWER NOTICE -->
+    <div *ngIf="isViewer()" class="text-muted small fst-italic mb-3">
+      👁️ You have read-only access. Time tracking is not available.
+    </div>
+  
+    <!-- TIMER — hidden for VIEWER -->
+    <div *ngIf="!isViewer()">
+  
+      <!-- LIVE COUNTER -->
+      <div class="text-center mb-3">
+        <div class="display-6 fw-bold font-monospace" [ngClass]="timerRunning ? 'text-danger' : 'text-muted'">
+          {{ timerDisplay }}
+        </div>
+      </div>
+  
+      <!-- START / STOP BUTTON -->
+      <div class="d-flex gap-2 justify-content-center mb-4">
+  
+        <button *ngIf="!timerRunning" class="btn btn-success px-4" (click)="startTimer()">
+          ▶ Start Timer
+        </button>
+  
+        <button *ngIf="timerRunning" class="btn btn-danger px-4" (click)="stopTimer()">
+          ⏹ Stop Timer
+        </button>
+  
+        <!-- MANUAL LOG TOGGLE -->
+        <button class="btn btn-outline-secondary px-4" (click)="showManualForm = !showManualForm">
+          {{ showManualForm ? '✕ Cancel' : '✏ Log Manually' }}
+        </button>
+  
+      </div>
+  
+      <!-- MANUAL LOG FORM -->
+      <div *ngIf="showManualForm" class="border rounded p-3 mb-4 bg-light">
+  
+        <h6 class="mb-3">Log Time Manually</h6>
+  
+        <div class="row g-3">
+  
+          <!-- HOURS -->
+          <div class="col-6 col-md-3">
+            <label class="form-label small">Hours</label>
+            <input type="number" class="form-control form-control-sm" [(ngModel)]="manualHours" min="0" max="99"
+              placeholder="0">
+          </div>
+  
+          <!-- MINUTES -->
+          <div class="col-6 col-md-3">
+            <label class="form-label small">Minutes</label>
+            <input type="number" class="form-control form-control-sm" [(ngModel)]="manualMinutes" min="0" max="59"
+              placeholder="0">
+          </div>
+  
+          <!-- DATE -->
+          <div class="col-12 col-md-3">
+            <label class="form-label small">Date</label>
+            <input type="date" class="form-control form-control-sm" [(ngModel)]="manualDate">
+          </div>
+  
+          <!-- NOTE -->
+          <div class="col-12 col-md-3">
+            <label class="form-label small">Note (optional)</label>
+            <input type="text" class="form-control form-control-sm" [(ngModel)]="manualNote"
+              placeholder="e.g. Design review">
+          </div>
+  
+        </div>
+  
+        <button class="btn btn-primary btn-sm mt-3" [disabled]="submittingManual" (click)="submitManualLog()">
+          <span *ngIf="!submittingManual">Save Log</span>
+          <span *ngIf="submittingManual" class="spinner-border spinner-border-sm"></span>
+        </button>
+  
+      </div>
+  
+    </div>
+  
+    <!-- TIME LOG TABLE -->
+    <div *ngIf="isLoadingLogs" class="text-center py-3">
+      <div class="spinner-border spinner-border-sm text-primary"></div>
+    </div>
+  
+    <div *ngIf="!isLoadingLogs && timeLogs.length === 0" class="text-muted small py-2">
+      No time logged yet.
+    </div>
+  
+    <div *ngIf="timeLogs.length > 0" class="table-responsive">
+      <table class="table table-sm table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Date</th>
+            <th>Duration</th>
+            <th>Type</th>
+            <th>By</th>
+            <th>Note</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let log of timeLogs">
+            <td class="small">{{ log.logDate }}</td>
+            <td class="small fw-semibold">
+              {{ formatDuration(log.durationMinutes) }}
+            </td>
+            <td>
+              <span class="badge" [ngClass]="log.isManual
+                               ? 'bg-info text-dark'
+                               : 'bg-warning text-dark'">
+                {{ log.isManual ? 'Manual' : 'Timer' }}
+              </span>
+            </td>
+            <td class="small">{{ log.loggedByName }}</td>
+            <td class="small text-muted">{{ log.note || '—' }}</td>
+            <td>
+              <button *ngIf="canDeleteLog(log)" class="btn btn-sm btn-outline-danger py-0 px-1"
+                (click)="deleteLog(log.id)">
+                🗑
+              </button>
+              <!-- Lock icon for timer entries -->
+              <span *ngIf="!log.isManual" class="text-muted small" title="Timer entries cannot be deleted">
+                🔒
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  
+  </div>
+
   <!-- ================= ATTACHMENTS SECTION ================= -->
   <div *ngIf="task && !isLoadingTask" class="card shadow-sm p-4 mb-4">
 
