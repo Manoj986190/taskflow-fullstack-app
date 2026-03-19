@@ -9,6 +9,7 @@ import { TeamService } from '../../services/team';
 import { TaskDueDatePipe } from '../../pipes/task-due-date-pipe';
 import { Navbar } from '../navbar/navbar';
 import { SubtaskService } from '../../services/subtask';
+import { HasRoleDirective } from '../../directives/has-role';
 
 declare var bootstrap: any;
 declare var Chart: any;
@@ -16,7 +17,7 @@ declare var Chart: any;
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, TaskDueDatePipe, Navbar],
+  imports: [CommonModule, RouterModule, FormsModule, TaskDueDatePipe, Navbar, HasRoleDirective],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
@@ -299,6 +300,8 @@ export class Dashboard implements OnInit, AfterViewChecked {
       form.control.markAllAsTouched();
       return;
     }
+
+    this.newTask.status = 'TODO';
 
     this.taskService.createTask(this.newTask).subscribe({
       next: () => {

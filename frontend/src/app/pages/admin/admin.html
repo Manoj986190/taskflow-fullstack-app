@@ -46,7 +46,7 @@
     No users found.
   </div>
 
-  <!-- DESKTOP TABLE — hidden on mobile -->
+  <!-- DESKTOP TABLE -->
   <div class="d-none d-md-block">
     <table *ngIf="!loading && users.length > 0"
            class="table table-bordered table-striped align-middle">
@@ -61,19 +61,40 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let user of users">
+        <tr *ngFor="let user of users"
+            [ngClass]="user.id === currentUserId ? 'table-warning' : ''">
           <td>{{ user.id }}</td>
-          <td>{{ user.fullName }}</td>
+          <td>
+            {{ user.fullName }}
+            <!-- ✅ YOU badge for current admin -->
+            <span *ngIf="user.id === currentUserId"
+                  class="badge bg-warning text-dark ms-1">
+              You
+            </span>
+          </td>
           <td>{{ user.email }}</td>
           <td>
-            <select class="form-select form-select-sm"
-                    [value]="user.role"
-                    (change)="changeRole(user, $any($event.target).value)">
-              <option value="ADMIN">ADMIN</option>
-              <option value="MANAGER">MANAGER</option>
-              <option value="MEMBER">MEMBER</option>
-              <option value="VIEWER">VIEWER</option>
-            </select>
+            <!-- ✅ Show dropdown only for OTHER users -->
+            <ng-container *ngIf="user.id !== currentUserId">
+              <select class="form-select form-select-sm"
+                      [value]="user.role"
+                      (change)="changeRole(user,
+                                $any($event.target).value)">
+                <option value="ADMIN">ADMIN</option>
+                <option value="MANAGER">MANAGER</option>
+                <option value="MEMBER">MEMBER</option>
+                <option value="VIEWER">VIEWER</option>
+              </select>
+            </ng-container>
+
+            <!-- ✅ Show locked badge for self -->
+            <ng-container *ngIf="user.id === currentUserId">
+              <span class="badge bg-danger">ADMIN</span>
+              <small class="text-muted ms-1 fst-italic"
+                     style="font-size:0.7rem;">
+                🔒 Cannot change own role
+              </small>
+            </ng-container>
           </td>
           <td>
             <span class="badge"
@@ -85,7 +106,9 @@
             </span>
           </td>
           <td>
-            <button class="btn btn-sm"
+            <!-- ✅ No deactivate button for self -->
+            <button *ngIf="user.id !== currentUserId"
+                    class="btn btn-sm"
                     [ngClass]="{
                       'btn-danger':  user.isActive,
                       'btn-success': !user.isActive
@@ -93,20 +116,33 @@
                     (click)="toggleStatus(user)">
               {{ user.isActive ? 'Deactivate' : 'Activate' }}
             </button>
+            <span *ngIf="user.id === currentUserId"
+                  class="text-muted small fst-italic">
+              —
+            </span>
           </td>
         </tr>
       </tbody>
     </table>
   </div>
 
-  <!-- MOBILE CARDS — hidden on desktop -->
+  <!-- MOBILE CARDS -->
   <div class="d-md-none">
     <div *ngFor="let user of users"
-         class="card shadow-sm mb-3 p-3">
+         class="card shadow-sm mb-3 p-3"
+         [ngClass]="user.id === currentUserId
+                    ? 'border-warning' : ''">
 
-      <div class="d-flex justify-content-between align-items-center mb-2">
+      <div class="d-flex justify-content-between
+                  align-items-center mb-2">
         <div>
-          <div class="fw-bold">{{ user.fullName }}</div>
+          <div class="fw-bold">
+            {{ user.fullName }}
+            <span *ngIf="user.id === currentUserId"
+                  class="badge bg-warning text-dark ms-1">
+              You
+            </span>
+          </div>
           <div class="text-muted small">{{ user.email }}</div>
         </div>
         <span class="badge"
@@ -120,17 +156,35 @@
 
       <div class="mb-2">
         <label class="form-label small fw-semibold mb-1">Role</label>
-        <select class="form-select form-select-sm"
-                [value]="user.role"
-                (change)="changeRole(user, $any($event.target).value)">
-          <option value="ADMIN">ADMIN</option>
-          <option value="MANAGER">MANAGER</option>
-          <option value="MEMBER">MEMBER</option>
-          <option value="VIEWER">VIEWER</option>
-        </select>
+
+        <!-- ✅ Dropdown for others -->
+        <ng-container *ngIf="user.id !== currentUserId">
+          <select class="form-select form-select-sm"
+                  [value]="user.role"
+                  (change)="changeRole(user,
+                            $any($event.target).value)">
+            <option value="ADMIN">ADMIN</option>
+            <option value="MANAGER">MANAGER</option>
+            <option value="MEMBER">MEMBER</option>
+            <option value="VIEWER">VIEWER</option>
+          </select>
+        </ng-container>
+
+        <!-- ✅ Locked badge for self -->
+        <ng-container *ngIf="user.id === currentUserId">
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-danger">ADMIN</span>
+            <small class="text-muted fst-italic"
+                   style="font-size:0.7rem;">
+              🔒 Cannot change own role
+            </small>
+          </div>
+        </ng-container>
       </div>
 
-      <button class="btn btn-sm w-100"
+      <!-- ✅ No deactivate for self -->
+      <button *ngIf="user.id !== currentUserId"
+              class="btn btn-sm w-100"
               [ngClass]="{
                 'btn-danger':  user.isActive,
                 'btn-success': !user.isActive
@@ -138,6 +192,11 @@
               (click)="toggleStatus(user)">
         {{ user.isActive ? 'Deactivate' : 'Activate' }}
       </button>
+
+      <div *ngIf="user.id === currentUserId"
+           class="text-center text-muted small fst-italic py-1">
+        🔒 Cannot deactivate own account
+      </div>
 
     </div>
   </div>

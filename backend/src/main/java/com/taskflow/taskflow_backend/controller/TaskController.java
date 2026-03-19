@@ -4,6 +4,7 @@ import com.taskflow.taskflow_backend.dto.TaskRequest;
 import com.taskflow.taskflow_backend.dto.TaskResponse;
 import com.taskflow.taskflow_backend.dto.TaskSummaryResponse;
 import com.taskflow.taskflow_backend.entity.TaskPriority;
+import com.taskflow.taskflow_backend.entity.TaskStatus;
 import com.taskflow.taskflow_backend.service.TaskService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -62,12 +63,13 @@ public class TaskController {
     // CREATE task
     // ===============================
     @PostMapping
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_MANAGER','ROLE_MEMBER')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_MANAGER')")
     public ResponseEntity<TaskResponse> createTask(
             Authentication authentication,
             @RequestBody TaskRequest request) {
 
         String email = authentication.getName();
+        request.setStatus(TaskStatus.TODO);
 
         TaskResponse response = taskService.createTask(email, request);
 
