@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -23,7 +24,7 @@ public class TeamService {
     private final TeamRepository teamRepository;
     private final TeamMemberRepository teamMemberRepository;
     private final UserRepository userRepository;
-    private final TaskRepository taskRepository;  // ✅ ADD
+    private final TaskRepository taskRepository;  
 
     // ===============================
     // CREATE TEAM
@@ -61,9 +62,23 @@ public class TeamService {
             return teamRepository.findAll();
         }
 
-        // MANAGER → see teams they manage
+        // MANAGER → see teams they manage and they belong to
         if (user.getRole() == Role.MANAGER) {
-            return teamRepository.findByManager_Id(user.getId());
+
+                // Teams where manager is owner
+                List<Team> managedTeams = teamRepository.findByManager_Id(user.getId());
+
+                // Teams where manager is member
+                List<Team> memberTeams = teamMemberRepository
+                                .findByUser_Id(user.getId())
+                                .stream()
+                                .map(TeamMember::getTeam)
+                                .toList();
+
+                // Combine both (avoid duplicates)
+                return Stream.concat(managedTeams.stream(), memberTeams.stream())
+                                .distinct()
+                                .toList();
         }
 
         // MEMBER / VIEWER → teams they belong to

@@ -297,7 +297,7 @@
 
           </div>
 
-          <div class="card-body p-2">
+          <div class="card-body p-2 activity-feed-body">
 
             <div *ngIf="activities.length === 0" class="text-muted small text-center py-3">
               No activity yet
@@ -405,7 +405,7 @@
                     name="assignedToUserId"
                     [(ngModel)]="newTask.assignedToUserId">
               <option [ngValue]="null">— Unassigned —</option>
-              <option *ngFor="let user of users"
+              <option *ngFor="let user of assignableUsers"
                       [ngValue]="user.id">
                 {{ user.fullName }} ({{ user.role }})
               </option>
@@ -525,7 +525,7 @@
                     [(ngModel)]="editingTask.assignedToUserId"
                     [disabled]="!isOwner(editingTask)">
               <option [ngValue]="null">— Unassigned —</option>
-              <option *ngFor="let user of users"
+              <option *ngFor="let user of assignableUsers"
                       [ngValue]="user.id">
                 {{ user.fullName }} ({{ user.role }})
               </option>

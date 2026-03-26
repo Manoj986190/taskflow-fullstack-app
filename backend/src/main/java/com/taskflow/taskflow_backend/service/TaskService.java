@@ -15,6 +15,7 @@ import com.taskflow.taskflow_backend.exception.TaskNotFoundException;
 import com.taskflow.taskflow_backend.exception.UserNotFoundException;
 import com.taskflow.taskflow_backend.repository.ActivityLogRepository;
 import com.taskflow.taskflow_backend.repository.TaskRepository;
+import com.taskflow.taskflow_backend.repository.TeamMemberRepository;
 import com.taskflow.taskflow_backend.repository.TeamRepository;
 import com.taskflow.taskflow_backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -31,43 +32,76 @@ public class TaskService {
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
     private final ActivityService activityService;
-    private final TeamRepository teamRepository;  // ✅ ADD
-    private final ActivityLogRepository activityLogRepository;  // ✅ ADD
+    private final TeamRepository teamRepository;  
+    private final ActivityLogRepository activityLogRepository;  
+    private final TeamMemberRepository teamMemberRepository;
 
     // =========================================================
-    // GET ALL TASKS (VISIBLE TO ADMIN,MANAGER,VIEWER USERS)
+    // GET TASKS (SECURE + CLEAN)
     // =========================================================
     public List<TaskResponse> getTasksForUser(String email, TaskPriority priority) {
 
             User user = getUserByEmail(email);
-            List<Task> tasks;
 
-            // ✅ ADMIN + MANAGER + VIEWER see all tasks
-            // VIEWER sees all but read-only (enforced in other endpoints)
-            if (user.getRole().name().equals("ADMIN") ||
-                            user.getRole().name().equals("MANAGER") ||
-                            user.getRole().name().equals("VIEWER")) {
-                    if (priority != null) {
-                            tasks = taskRepository.findByPriority(priority);
-                    } else {
-                            tasks = taskRepository.findAll();
-                    }
-            } else {
-                    // ✅ MEMBER sees only own + assigned tasks
-                    if (priority != null) {
-                            tasks = taskRepository
-                                            .findByUser_IdOrAssignedTo_IdAndPriority(
-                                                            user.getId(), user.getId(), priority);
-                    } else {
-                            tasks = taskRepository
-                                            .findByUser_IdOrAssignedTo_Id(
-                                                            user.getId(), user.getId());
-                    }
-            }
+            List<Task> tasks = getTasksByRole(user, priority);
 
             return tasks.stream()
                             .map(this::mapToResponse)
                             .toList();
+    }
+
+    // =========================================================
+    // CORE ROLE + TEAM FILTER LOGIC
+    // =========================================================
+    private List<Task> getTasksByRole(User user, TaskPriority priority) {
+
+            // 🔹 ADMIN → all tasks
+            if (isAdmin(user)) {
+                    return (priority != null)
+                                    ? taskRepository.findByPriority(priority)
+                                    : taskRepository.findAll();
+            }
+
+            // 🔹 MANAGER → tasks of managed teams
+            if (isManager(user)) {
+                    List<Long> teamIds = teamRepository
+                                    .findByManager_Id(user.getId())
+                                    .stream()
+                                    .map(Team::getId)
+                                    .toList();
+
+                    if (teamIds.isEmpty())
+                            return List.of();
+
+                    return (priority != null)
+                                    ? taskRepository.findByTeam_IdInAndPriority(teamIds, priority)
+                                    : taskRepository.findByTeam_IdIn(teamIds);
+            }
+
+            // 🔹 MEMBER + VIEWER → tasks of joined teams
+            List<Long> teamIds = teamMemberRepository
+                            .findByUser_Id(user.getId())
+                            .stream()
+                            .map(tm -> tm.getTeam().getId())
+                            .toList();
+
+            if (teamIds.isEmpty())
+                    return List.of();
+
+            return (priority != null)
+                            ? taskRepository.findByTeam_IdInAndPriority(teamIds, priority)
+                            : taskRepository.findByTeam_IdIn(teamIds);
+    }
+
+    // =========================================================
+    // ROLE HELPERS
+    // =========================================================
+    private boolean isAdmin(User user) {
+            return user.getRole().name().equals("ADMIN");
+    }
+
+    private boolean isManager(User user) {
+            return user.getRole().name().equals("MANAGER");
     }
 
     // =========================================================
@@ -86,6 +120,13 @@ public class TaskService {
         if (request.getAssignedToUserId() != null) {
             assignedUser = userRepository.findById(request.getAssignedToUserId())
                     .orElseThrow(() -> new UserNotFoundException("Assigned user not found"));
+        }
+
+        // ✅ ADD — prevent assigning task to VIEWER
+        if (assignedUser != null &&
+                        assignedUser.getRole().name().equals("VIEWER")) {
+                throw new TaskAccessDeniedException(
+                                "Tasks cannot be assigned to Viewers");
         }
 
         // ✅ ADD — resolve team if provided
@@ -259,33 +300,76 @@ public class TaskService {
     // =========================================================
     public TaskSummaryResponse getTaskSummary(String email) {
 
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+            User user = userRepository.findByEmail(email)
+                            .orElseThrow(() -> new RuntimeException("User not found"));
 
-        int totalTasks = taskRepository.countTotalTasks(user);
-        int todo = taskRepository.countTodo(user);
-        int inProgress = taskRepository.countInProgress(user);
-        int done = taskRepository.countDone(user);
-        int high = taskRepository.countHigh(user);
-        int medium = taskRepository.countMedium(user);
-        int low = taskRepository.countLow(user);
-        int overdue = taskRepository.countOverdue(user);
-        int tasksThisWeek = taskRepository.countTasksThisWeek(user);
+            boolean isPrivileged = isPrivileged(user);
 
-        double completionRate = 0;
-        if (totalTasks > 0) {
-            completionRate = ((double) done / totalTasks) * 100;
-            completionRate = Math.round(completionRate * 10.0) / 10.0;
-        }
+            int totalTasks = isPrivileged
+                            ? taskRepository.countAllTasks()
+                            : taskRepository.countTotalTasks(user);
 
-        Map<String, Integer> byStatus = Map.of(
-                "todo", todo, "inProgress", inProgress, "done", done);
+            int todo = isPrivileged
+                            ? taskRepository.countAllTodo()
+                            : taskRepository.countTodo(user);
 
-        Map<String, Integer> byPriority = Map.of(
-                "high", high, "medium", medium, "low", low);
+            int inProgress = isPrivileged
+                            ? taskRepository.countAllInProgress()
+                            : taskRepository.countInProgress(user);
 
-        return new TaskSummaryResponse(
-                totalTasks, byStatus, byPriority,
-                completionRate, overdue, tasksThisWeek);
+            int done = isPrivileged
+                            ? taskRepository.countAllDone()
+                            : taskRepository.countDone(user);
+
+            int high = isPrivileged
+                            ? taskRepository.countAllHigh()
+                            : taskRepository.countHigh(user);
+
+            int medium = isPrivileged
+                            ? taskRepository.countAllMedium()
+                            : taskRepository.countMedium(user);
+
+            int low = isPrivileged
+                            ? taskRepository.countAllLow()
+                            : taskRepository.countLow(user);
+
+            int overdue = isPrivileged
+                            ? taskRepository.countAllOverdue()
+                            : taskRepository.countOverdue(user);
+
+            int tasksThisWeek = isPrivileged
+                            ? taskRepository.countAllTasksThisWeek()
+                            : taskRepository.countTasksThisWeek(user);
+
+            double completionRate = 0;
+            if (totalTasks > 0) {
+                    completionRate = ((double) done / totalTasks) * 100;
+                    completionRate = Math.round(completionRate * 10.0) / 10.0;
+            }
+
+            Map<String, Integer> byStatus = Map.of(
+                            "todo", todo,
+                            "inProgress", inProgress,
+                            "done", done);
+
+            Map<String, Integer> byPriority = Map.of(
+                            "high", high,
+                            "medium", medium,
+                            "low", low);
+
+            return new TaskSummaryResponse(
+                            totalTasks,
+                            byStatus,
+                            byPriority,
+                            completionRate,
+                            overdue,
+                            tasksThisWeek);
+    }
+
+    //Helper method for isPrivileged
+    private boolean isPrivileged(User user) {
+            return user.getRole().name().equals("ADMIN") ||
+                            user.getRole().name().equals("MANAGER") ||
+                            user.getRole().name().equals("VIEWER");
     }
 }

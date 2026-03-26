@@ -23,6 +23,17 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
     Optional<Task> findByIdAndUser(Long id, User user);
     List<Task> findByTeam_Id(Long teamId);  // ✅ ADD
+    
+    List<Task> findByTeam_IdIn(List<Long> teamIds);
+
+    @Query("""
+                        SELECT t FROM Task t
+                        WHERE t.team.id IN :teamIds
+                        AND t.priority = :priority
+                    """)
+    List<Task> findByTeam_IdInAndPriority(
+                    @Param("teamIds") List<Long> teamIds,
+                    @Param("priority") TaskPriority priority);
 
     // ✅ For MEMBER/VIEWER — own or assigned tasks
     List<Task> findByUser_IdOrAssignedTo_Id(
@@ -129,5 +140,44 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     @Transactional
     @Query("UPDATE Task t SET t.assignedTo = null WHERE t.assignedTo.id = :userId")
     void clearAssignedTo(@Param("userId") Long userId);
+
+    // ================= GLOBAL ANALYTICS (FOR ADMIN / MANAGER / VIEWER)
+    // =================
+
+    @Query("SELECT COUNT(t) FROM Task t")
+    int countAllTasks();
+
+    @Query("SELECT COUNT(t) FROM Task t WHERE t.status = 'TODO'")
+    int countAllTodo();
+
+    @Query("SELECT COUNT(t) FROM Task t WHERE t.status = 'IN_PROGRESS'")
+    int countAllInProgress();
+
+    @Query("SELECT COUNT(t) FROM Task t WHERE t.status = 'DONE'")
+    int countAllDone();
+
+    @Query("SELECT COUNT(t) FROM Task t WHERE t.priority = 'HIGH'")
+    int countAllHigh();
+
+    @Query("SELECT COUNT(t) FROM Task t WHERE t.priority = 'MEDIUM'")
+    int countAllMedium();
+
+    @Query("SELECT COUNT(t) FROM Task t WHERE t.priority = 'LOW'")
+    int countAllLow();
+
+    @Query("""
+                    SELECT COUNT(t)
+                    FROM Task t
+                    WHERE t.dueDate < CURRENT_DATE
+                    AND t.status != 'DONE'
+                    """)
+    int countAllOverdue();
+
+    @Query(value = """
+                    SELECT COUNT(*)
+                    FROM tasks t
+                    WHERE t.created_at >= CURRENT_DATE - INTERVAL '7 days'
+                    """, nativeQuery = true)
+    int countAllTasksThisWeek();
     
 }

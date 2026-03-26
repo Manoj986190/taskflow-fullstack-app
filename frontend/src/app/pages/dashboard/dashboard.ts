@@ -142,6 +142,7 @@ export class Dashboard implements OnInit, AfterViewChecked {
         this.calculateStats();
         this.applyFilters();
         this.loadSubtaskSummaries();
+        this.chartsRendered = false;
         this.cdr.detectChanges();
       },
       error: (err) => console.error('Error loading tasks:', err),
@@ -253,6 +254,11 @@ export class Dashboard implements OnInit, AfterViewChecked {
     }
   }
 
+  // ✅ ADD — filter out VIEWERs from assign dropdown
+  get assignableUsers(): AppUser[] {
+    return this.users.filter((u) => u.role !== 'VIEWER');
+  }
+
   openCreateModal() {
     const element = document.getElementById('createTaskModal');
     if (!element) return;
@@ -316,6 +322,7 @@ export class Dashboard implements OnInit, AfterViewChecked {
         };
         this.closeModal('createTaskModal');
         this.loadTasks();
+        this.loadAnalytics();
       },
     });
   }
@@ -333,6 +340,7 @@ export class Dashboard implements OnInit, AfterViewChecked {
         this.editingTask = null;
         setTimeout(() => {
           this.loadTasks();
+          this.loadAnalytics();
         }, 200);
       },
       error: (err) => console.error(err),
@@ -344,7 +352,10 @@ export class Dashboard implements OnInit, AfterViewChecked {
     if (!confirm('Are you sure you want to delete this task?')) return;
 
     this.taskService.deleteTask(id).subscribe({
-      next: () => this.loadTasks(),
+      next: () => {
+        this.loadTasks();
+        this.loadAnalytics();
+      },
       error: (err) => {
         alert('Only task owner can delete this task');
         //alert(err.error?.message || err.message || 'Failed to delete task');
@@ -361,6 +372,7 @@ export class Dashboard implements OnInit, AfterViewChecked {
     this.taskService.getSummary().subscribe({
       next: (data) => {
         this.summary = data;
+        this.chartsRendered = false;
         this.cdr.detectChanges();
         setTimeout(() => {
           this.renderCharts();
@@ -374,6 +386,7 @@ export class Dashboard implements OnInit, AfterViewChecked {
     this.showAnalytics = !this.showAnalytics;
 
     if (this.showAnalytics) {
+      this.chartsRendered = false;
       if (!this.summary) {
         this.loadAnalytics();
       } else {
